@@ -115,11 +115,24 @@ export const authService = {
   },
 
   async checkAuthStatus(): Promise<boolean> {
+    if (!supabase) {
+      return false;
+    }
+
     try {
-      const token = await AsyncStorage.getItem(TOKEN_KEY);
-      return token === 'logged_in';
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error('Check auth status error:', error);
+        return false;
+      }
+
+      return !!user;
     } catch (e) {
-      console.error('Check auth status error:', e);
+      console.error('Check auth status unexpected error:', e);
       return false;
     }
   },
