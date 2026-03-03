@@ -2,28 +2,25 @@
 
 buildscript {
   repositories {
-    maven { url 'https://maven.aliyun.com/repository/google' }
-    maven { url 'https://maven.aliyun.com/repository/central' }
+    // 国内镜像优先，其次官方源
+    maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    maven { url 'https://maven.aliyun.com/repository/public' }
     google()
     mavenCentral()
   }
   dependencies {
-    // 确保版本号与项目兼容（通常由根项目的 ext 变量定义）
-    classpath('com.android.tools.build:gradle:8.1.4')          // 根据你的 Gradle 版本选择
-    classpath('com.facebook.react:react-native-gradle-plugin') // 这一行通常不需要手动指定版本，由 react-native 自动管理
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20') // 显式指定 Kotlin 版本，与 SDK 55 / RN 0.83.2 兼容
-}
-  // dependencies {
-  //   classpath('com.android.tools.build:gradle')
-  //   classpath('com.facebook.react:react-native-gradle-plugin')
-  //   classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
-  // }
+    classpath('com.android.tools.build:gradle')
+    classpath('com.facebook.react:react-native-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+  }
 }
 
 allprojects {
   repositories {
+    // 国内镜像优先，其次官方源
+    maven { url 'https://maven.aliyun.com/repository/public' }
     maven { url 'https://maven.aliyun.com/repository/google' }
-    maven { url 'https://maven.aliyun.com/repository/central' }
+    maven { url 'https://maven.aliyun.com/repository/jcenter' }
     google()
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
