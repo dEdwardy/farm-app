@@ -1,13 +1,5 @@
 // 文件工具类
-// export const readFileContent = async (filePath: string) => {
-//   try {
-//     const content = await FileSystem.read(filePath, 'utf8');
-//     return content;
-//   } catch (error) {
-//     console.error('读取文件内容失败:', error);
-//     throw error;
-//   }
-// }
+
 // 获取文件路径 去掉query参数
 export const getFileUrl = (path: string) => {
   const url = new URL(path);
@@ -102,41 +94,4 @@ export function generateUniqueFileName(originalName: string): string {
   return `${baseName}_${timestamp}_${random}${extension ? `.${extension}` : ''}`;
 }
 
-// 将文件路径转换为Blob
-export async function fileToBlob(fileUri: string, mimeType: string): Promise<Blob> {
-  try {
-    // 检查是否在React Native环境中
-    // if (typeof window === 'undefined' && typeof global !== 'undefined') {
-    //   // React Native环境
-    //   const { readAsStringAsync } = require('expo-file-system');
-      
-    //   // 读取文件内容为Base64
-    //   const fileContent = await readAsStringAsync(fileUri, {
-    //     encoding: 'base64',
-    //   });
-      
-    //   // 将Base64转换为Blob
-    //   const blob = new Blob([Uint8Array.from(atob(fileContent), c => c.charCodeAt(0))], {
-    //     type: mimeType,
-    //   });
-      
-    //   return blob;
-    // } else {
-      // Web环境
-      console.log('Web环境', fileUri)
-      const response = await fetch(fileUri);
-      const blob = await response.blob();
-      
-      // 确保Blob的MIME类型正确
-      if (blob.type !== mimeType) {
-        const arrayBuffer = await blob.arrayBuffer();
-        return new Blob([arrayBuffer], { type: mimeType });
-      }
-      
-      return blob;
-    // }
-  } catch (error) {
-    console.error('文件转换为Blob失败:', error);
-    throw error;
-  }
-}
+

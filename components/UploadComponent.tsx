@@ -253,12 +253,12 @@ const styles = StyleSheet.create({
   }
 });
 
-export function UploadComponent({ 
+export function UploadComponent({
   onUploadComplete,
   onFileRemove,
   onProgress,
   onSuccess,
-  maxFiles = 5, 
+  maxFiles = 5,
   maxFileSize = Number.MAX_VALUE,
   autoUpload = true,
   capture = false,
@@ -319,14 +319,17 @@ export function UploadComponent({
     });
 
     if (!result.canceled) {
-      const newFiles = result.assets.map(asset => ({
-        id: generateFileId(),
-        name: asset.fileName || `image_${Date.now()}.jpg`,
-        size: asset.fileSize || 0,
-        type: 'image',
-        uri: asset.uri,
-        status: 'ready' as const
-      }));
+      const newFiles = result.assets.map(asset => {
+        const item = {
+          id: generateFileId(),
+          name: asset.fileName || `image_${Date.now()}.jpg`,
+          size: asset.fileSize || 0,
+          type: 'image',
+          uri: asset.uri,
+          status: 'ready' as const,
+        }
+        return item
+      });
       processNewFiles(newFiles);
     }
   };
@@ -379,15 +382,15 @@ export function UploadComponent({
 
   const removeFile = (id: string) => {
     if (disabled) return;
-    
+
     // 找到要删除的文件及其索引
     const removedFileIndex = selectedFiles.findIndex(file => file.id === id);
     const removedFile = selectedFiles[removedFileIndex];
-    
+
     // 过滤掉要删除的文件
     const newFiles = selectedFiles.filter(file => file.id !== id);
     setSelectedFiles(newFiles);
-    
+
     // 调用文件删除回调，传入文件和索引
     if (removedFile) {
       onFileRemove?.(removedFile, removedFileIndex);
@@ -402,7 +405,7 @@ export function UploadComponent({
     try {
       // 直接返回选择的文件，上传逻辑由外部处理
       const filesToUpload = selectedFiles.filter(file => file.status === 'ready');
-      
+
       setUploading(false);
       onUploadComplete(filesToUpload);
       return filesToUpload;
@@ -414,10 +417,10 @@ export function UploadComponent({
   };
 
   const getFileIcon = (type: string) => {
-    const icon = type.includes('image') ? '🖼️' : 
-                type.includes('pdf') ? '📄' : 
-                type.includes('word') || type.includes('doc') ? '📃' : 
-                type.includes('excel') || type.includes('xlsx') ? '📊' : '📁';
+    const icon = type.includes('image') ? '🖼️' :
+      type.includes('pdf') ? '📄' :
+        type.includes('word') || type.includes('doc') ? '📃' :
+          type.includes('excel') || type.includes('xlsx') ? '📊' : '📁';
     return <Text style={{ fontSize: 24, color: theme.colors.primary, marginRight: theme.spacing.md }}>{icon}</Text>;
   };
 
@@ -444,7 +447,7 @@ export function UploadComponent({
             <View style={styles.container}>
               <TouchableOpacity
                 style={[
-                  commonStyles.primaryButton, 
+                  commonStyles.primaryButton,
                   {
                     borderRadius: theme.borderRadius.md,
                     paddingVertical: theme.spacing.md,
@@ -471,8 +474,8 @@ export function UploadComponent({
               )}
               <ScrollView style={[styles.fileList, { borderRadius: theme.borderRadius.md, borderWidth: 1, borderColor: theme.colors.border }]}>
                 {selectedFiles.map((file) => (
-                  <TouchableOpacity 
-                    key={file.id} 
+                  <TouchableOpacity
+                    key={file.id}
                     style={[styles.fileItem, file.status === 'error' ? { backgroundColor: 'rgba(220, 53, 69, 0.05)' } : {}]}
                     activeOpacity={0.7}
                   >
@@ -495,8 +498,8 @@ export function UploadComponent({
                     <View style={styles.statusContainer}>
                       {getStatusIcon(file.status)}
                       {!disabled && (
-                        <TouchableOpacity 
-                          onPress={() => removeFile(file.id)} 
+                        <TouchableOpacity
+                          onPress={() => removeFile(file.id)}
                           style={[styles.removeButton, { padding: theme.spacing.sm }]}
                           disabled={disabled}
                           activeOpacity={0.7}
@@ -515,8 +518,8 @@ export function UploadComponent({
           {uploadType === 'file' && !autoUpload && (
             <TouchableOpacity
               style={[
-                commonStyles.primaryButton, 
-                styles.uploadButton, 
+                commonStyles.primaryButton,
+                styles.uploadButton,
                 (selectedFiles.length === 0 || uploading || disabled) && { opacity: 0.6 },
                 {
                   borderRadius: theme.borderRadius.md,
@@ -545,7 +548,7 @@ export function UploadComponent({
               </View>
             </TouchableOpacity>
           )}
-          
+
           {/* 仅在上传类型为文件时展示文件类型提示 */}
           {uploadType === 'file' && (
             <Text style={[commonStyles.subtitle, { marginTop: theme.spacing.md, fontSize: 11, textAlign: 'center', color: theme.colors.text.secondary }]}>支持上传图片、PDF、Word、Excel等文件</Text>
@@ -562,17 +565,17 @@ export function UploadComponent({
             <View style={styles.gridContainer}>
               {/* 已选择的图片 */}
               {selectedFiles.map((file) => (
-                <View 
-                  key={file.id} 
+                <View
+                  key={file.id}
                   style={styles.gridItem}
                 >
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.imageContainer}
                     onPress={() => setPreviewImage(file.uri)}
                     activeOpacity={0.9}
                   >
-                    <Image 
-                      source={{ uri: file.uri }} 
+                    <Image
+                      source={{ uri: file.uri }}
                       style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
                     />
                     {file.status === 'uploading' && file.progress !== undefined && (
@@ -582,8 +585,8 @@ export function UploadComponent({
                     )}
                   </TouchableOpacity>
                   {!disabled && (
-                    <TouchableOpacity 
-                      onPress={() => removeFile(file.id)} 
+                    <TouchableOpacity
+                      onPress={() => removeFile(file.id)}
                       style={styles.deleteButton}
                       disabled={disabled}
                       activeOpacity={0.8}
@@ -603,11 +606,11 @@ export function UploadComponent({
                   )}
                 </View>
               ))}
-              
+
               {/* 添加按钮 */}
               {selectedFiles.length < maxFiles && !disabled && (
                 <View style={styles.gridItem}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[styles.addButton]}
                     onPress={pickImage}
                     activeOpacity={0.8}
@@ -621,13 +624,13 @@ export function UploadComponent({
               )}
             </View>
           </View>
-          
+
           {/* 仅在上传类型为文件时展示上传按钮 */}
           {uploadType === 'file' && !autoUpload && selectedFiles.length > 0 && (
             <TouchableOpacity
               style={[
-                commonStyles.primaryButton, 
-                styles.uploadButton, 
+                commonStyles.primaryButton,
+                styles.uploadButton,
                 (uploading || disabled) && { opacity: 0.6 }
               ]}
               onPress={uploadFiles}
@@ -646,7 +649,7 @@ export function UploadComponent({
           )}
         </>
       )}
-      
+
       {/* 图片预览模态框 */}
       {previewImage && (
         <Modal
@@ -657,7 +660,7 @@ export function UploadComponent({
         >
           <View style={{ flex: 1, backgroundColor: 'black' }}>
             {/* 关闭按钮 */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={{
                 position: 'absolute',
                 top: 40,
@@ -676,9 +679,9 @@ export function UploadComponent({
               <Text style={{ fontSize: 24, color: 'white', fontWeight: 'bold' }}>✕</Text>
             </TouchableOpacity>
             {/* 预览图片 */}
-            <Image 
+            <Image
               resizeMode="contain"
-              source={{ uri: previewImage }} 
+              source={{ uri: previewImage }}
               style={{ flex: 1, width: '100%', height: '100%' }}
             />
           </View>

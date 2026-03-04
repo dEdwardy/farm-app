@@ -11,5 +11,3 @@ export const supabaseInitError =
 
 export const supabase: SupabaseClient | null =
   supabaseInitError ? null : createClient(supabaseUrl!, supabaseAnonKey!);
-
-console.error('supabaseAnonKey',supabaseAnonKey)

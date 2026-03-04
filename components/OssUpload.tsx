@@ -1,5 +1,6 @@
 import { getOssPresignedUrl } from '@/services/ossService';
-import { fileToBlob, getContentTypeByExtension, getFileUrl } from '@/utils/fileUtils';
+import { getContentTypeByExtension, getFileUrl } from '@/utils/fileUtils';
+import { FileSystemUploadType, uploadAsync } from 'expo-file-system/legacy';
 import { encode } from 'js-base64';
 import React, { useState } from 'react';
 import { UploadComponent } from './upload';
@@ -59,7 +60,6 @@ export function OssUpload({
 
     try {
       const uploadedFiles = [];
-      
       // 逐个上传文件
       for (const file of filesToUpload) {
         try {
@@ -67,17 +67,15 @@ export function OssUpload({
           const fileType = getContentTypeByExtension(fileName);
           const { uploadUrl, originalName } = await getOssPresignedUrl(fileName, fileType);
           
-          // 转换文件为blob
-          const fileBlob = await fileToBlob(file.uri, fileType);
-          
-          // 上传文件到OSS
-          await fetch(uploadUrl, {
-            method: 'PUT',
+          // 使用 FileSystem.uploadAsync 上传文件
+          // 这是专门用于文件上传的 API
+          await uploadAsync(uploadUrl, file.uri, {
+            httpMethod: 'PUT',
+            uploadType: FileSystemUploadType.BINARY_CONTENT,
             headers: {
               'Content-Type': fileType,
               'x-oss-meta-original-name': encode(originalName),
             },
-            body: fileBlob,
           });
           
           // 获取文件的访问URL

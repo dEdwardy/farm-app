@@ -2,6 +2,7 @@ import { commonStyles } from '@/styles/commonStyles';
 import { theme } from '@/styles/theme';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FileDownloader } from './FileDownloader';
 import { FileItemProps } from './types';
 
 const styles = StyleSheet.create({
@@ -26,9 +27,12 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   removeButton: {
-    padding: theme.spacing.sm,
-    marginLeft: theme.spacing.sm,
-    borderRadius: theme.borderRadius.sm,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: theme.spacing.xs,
   },
   removeIcon: {
     fontSize: 18,
@@ -59,6 +63,9 @@ const getStatusIcon = (status: string) => {
 };
 
 export function FileItemComponent({ file, disabled, onRemove }: FileItemProps) {
+  const isUploaded = file.status === 'success' && file.uri.startsWith('http');
+  const showDownload = disabled && isUploaded;
+
   return (
     <TouchableOpacity 
       style={[styles.fileItem, file.status === 'error' ? { backgroundColor: 'rgba(220, 53, 69, 0.05)' } : {}]}
@@ -82,6 +89,13 @@ export function FileItemComponent({ file, disabled, onRemove }: FileItemProps) {
       </View>
       <View style={styles.statusContainer}>
         {getStatusIcon(file.status)}
+        {showDownload && (
+          <FileDownloader
+            fileUrl={file.uri}
+            fileName={file.name}
+            fileSize={file.size}
+          />
+        )}
         {!disabled && onRemove && (
           <TouchableOpacity 
             onPress={() => onRemove(file)} 

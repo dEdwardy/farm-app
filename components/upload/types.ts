@@ -1,3 +1,5 @@
+import type { File } from 'expo-file-system';
+
 // 文件项接口
 export interface FileItem {
   id: string;
@@ -5,6 +7,8 @@ export interface FileItem {
   size: number;
   type: string;
   uri: string;
+  // 可选：文件对象，可能是 Expo FileSystem 的 File 实例、ImagePickerAsset 或 DocumentPickerAsset
+  file?: any;
   status: 'ready' | 'uploading' | 'success' | 'error';
   progress?: number;
 }

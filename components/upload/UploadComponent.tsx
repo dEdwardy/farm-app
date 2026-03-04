@@ -4,6 +4,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FileDownloader } from './FileDownloader';
 import { FileList } from './FileList';
 import { ImageGrid } from './ImageGrid';
 import { FileItem, UploadComponentProps } from './types';
@@ -64,6 +65,13 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.95)',
     zIndex: 999,
+  },
+  downloadButtonContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   }
 });
 
@@ -77,17 +85,14 @@ export function UploadComponent({
   autoUpload = true,
   capture = false,
   disabled = false,
-  uploadType = 'file', // 默认文件上传
-  previewType, // 可选，不设置则根据uploadType自动决定
-  initialFiles = [] // 初始文件URL数组
+  uploadType = 'file',
+  previewType,
+  initialFiles = []
 }: UploadComponentProps) {
-  // 根据uploadType自动设置previewType
   const effectivePreviewType = previewType || (uploadType === 'image' ? 'picture' : 'list');
-  // 初始化时将初始文件URL或FileInfo转换为FileItem数组
   const [selectedFiles, setSelectedFiles] = useState<FileItem[]>(() => {
     return initialFiles.map((item, index) => {
       if (typeof item === 'string') {
-        // 处理字符串类型的URL
         return {
           id: `initial-${index}-${Date.now()}`,
           name: item.split('/').pop() || `file-${index}`,
@@ -97,7 +102,6 @@ export function UploadComponent({
           status: 'success'
         };
       } else {
-        // 处理FileInfo类型的对象
         return {
           id: `initial-${index}-${Date.now()}`,
           name: item.name,
@@ -133,14 +137,20 @@ export function UploadComponent({
     });
 
     if (!result.canceled) {
-      const newFiles = result.assets.map(asset => ({
-        id: generateFileId(),
-        name: asset.fileName || `image_${Date.now()}.jpg`,
-        size: asset.fileSize || 0,
-        type: 'image',
-        uri: asset.uri,
-        status: 'ready' as const
-      }));
+      const newFiles: FileItem[] = [];
+      
+      for (const asset of result.assets) {
+        const fileItem: FileItem = {
+          id: generateFileId(),
+          name: asset.fileName || `image_${Date.now()}.jpg`,
+          size: asset.fileSize || 0,
+          type: 'image',
+          uri: asset.uri,
+          status: 'ready' as const,
+        };
+        newFiles.push(fileItem);
+      }
+
       processNewFiles(newFiles);
     }
   };
@@ -155,30 +165,34 @@ export function UploadComponent({
       });
 
       if (!result.canceled) {
-        const newFiles = result.assets.map(asset => ({
-          id: generateFileId(),
-          name: asset.name,
-          size: asset.size || 0,
-          type: asset.mimeType || 'file',
-          uri: asset.uri,
-          status: 'ready' as const
-        }));
+        const newFiles: FileItem[] = [];
+        
+        for (const asset of result.assets) {
+          const fileItem: FileItem = {
+            id: generateFileId(),
+            name: asset.name,
+            size: asset.size || 0,
+            type: asset.mimeType || 'file',
+            uri: asset.uri,
+            status: 'ready' as const,
+          };
+          newFiles.push(fileItem);
+        }
+
         processNewFiles(newFiles);
       }
-    } catch (error) {
-      console.error('Error picking document:', error);
+    } catch {
+      // 忽略错误
     }
   };
 
   const processNewFiles = (newFiles: FileItem[]) => {
-    // 检查文件数量限制
     const combinedFiles = [...selectedFiles, ...newFiles];
     if (combinedFiles.length > maxFiles) {
       alert(`最多只能上传 ${maxFiles} 个文件`);
       return;
     }
 
-    // 检查文件大小限制
     const oversizedFiles = newFiles.filter(file => file.size > maxFileSize);
     if (oversizedFiles.length > 0) {
       alert(`文件 ${oversizedFiles[0].name} 超过大小限制`);
@@ -186,22 +200,16 @@ export function UploadComponent({
     }
 
     setSelectedFiles(combinedFiles);
-
-    // 调用上传完成回调，返回选择的文件
     onUploadComplete(combinedFiles);
   };
 
-  const removeFile = (file: FileItem) => {
+  const removeFile = (file: FileItem, index?: number) => {
     if (disabled) return;
-    
-    // 找到要删除的文件及其索引
-    const removedFileIndex = selectedFiles.findIndex(f => f.id === file.id);
-    
-    // 过滤掉要删除的文件
+
+    const removedFileIndex = index !== undefined ? index : selectedFiles.findIndex(f => f.id === file.id);
     const newFiles = selectedFiles.filter(f => f.id !== file.id);
     setSelectedFiles(newFiles);
     
-    // 调用文件删除回调，传入文件和索引
     if (removedFileIndex !== -1) {
       onFileRemove?.(file, removedFileIndex);
     }
@@ -213,25 +221,26 @@ export function UploadComponent({
     setUploading(true);
 
     try {
-      // 直接返回选择的文件，上传逻辑由外部处理
       const filesToUpload = selectedFiles.filter(file => file.status === 'ready');
       
       setUploading(false);
       onUploadComplete(filesToUpload);
       return filesToUpload;
-    } catch (error) {
-      console.error('上传失败:', error);
+    } catch {
       setUploading(false);
       return [];
     }
   };
 
+  const getPreviewFile = () => {
+    if (!previewImage) return null;
+    return selectedFiles.find(f => f.uri === previewImage);
+  };
+
   return (
     <View style={[disabled && { opacity: 1 }]}>
-      {/* 根据effectivePreviewType决定渲染方式 */}
       {effectivePreviewType === 'list' ? (
         <>
-          {/* 仅在非disabled状态下显示选择文件按钮 */}
           {!disabled && (
             <View style={styles.container}>
               <TouchableOpacity
@@ -254,16 +263,14 @@ export function UploadComponent({
             </View>
           )}
 
-          {/* 仅在上传类型为文件时展示已选择文件 */}
           {uploadType === 'file' && selectedFiles.length > 0 && (
             <FileList 
               files={selectedFiles} 
               disabled={disabled}
-              onFileRemove={onFileRemove}
+              onFileRemove={removeFile}
             />
           )}
 
-          {/* 仅在上传类型为文件时展示上传按钮 */}
           {uploadType === 'file' && !autoUpload && (
             <TouchableOpacity
               style={[
@@ -291,16 +298,13 @@ export function UploadComponent({
             </TouchableOpacity>
           )}
           
-          {/* 仅在上传类型为文件时展示文件类型提示 */}
           {uploadType === 'file' && !disabled && (
             <Text style={[commonStyles.subtitle, { marginTop: theme.spacing.md, fontSize: 11, textAlign: 'center', color: theme.colors.text.secondary }]}>支持上传图片、PDF、Word、Excel等文件</Text>
           )}
         </>
       ) : (
-        // picture模式 - 九宫格布局
         <>
           <View style={styles.container}>
-            {/* 仅在上传类型为文件且非disabled状态下展示已选择文件数量 */}
             {uploadType === 'file' && !disabled && selectedFiles.length > 0 && (
               <Text style={[commonStyles.subtitle, { marginBottom: theme.spacing.sm }]}>已选择 {selectedFiles.length} 个文件</Text>
             )}
@@ -309,12 +313,11 @@ export function UploadComponent({
               disabled={disabled}
               maxFiles={maxFiles}
               onAddPress={pickImage}
-              onFileRemove={onFileRemove}
+              onFileRemove={removeFile}
               onImagePress={(uri) => setPreviewImage(uri)}
             />
           </View>
           
-          {/* 仅在上传类型为文件时展示上传按钮 */}
           {uploadType === 'file' && !autoUpload && selectedFiles.length > 0 && (
             <TouchableOpacity
               style={[
@@ -342,7 +345,6 @@ export function UploadComponent({
         </>
       )}
       
-      {/* 图片预览模态框 */}
       {previewImage && (
         <Modal
           visible={true}
@@ -351,7 +353,6 @@ export function UploadComponent({
           onRequestClose={() => setPreviewImage(null)}
         >
           <View style={{ flex: 1, backgroundColor: 'black' }}>
-            {/* 关闭按钮 */}
             <TouchableOpacity 
               style={styles.closeButton}
               onPress={() => setPreviewImage(null)}
@@ -360,7 +361,6 @@ export function UploadComponent({
               <Text style={styles.closeIcon}>✕</Text>
             </TouchableOpacity>
             
-            {/* 预览图片 */}
             <View style={styles.modalContainer}>
               <Image 
                 source={{ uri: previewImage }} 
@@ -368,6 +368,16 @@ export function UploadComponent({
                 resizeMode="contain"
               />
             </View>
+
+            {disabled && getPreviewFile() && (
+              <View style={styles.downloadButtonContainer}>
+                <FileDownloader
+                  fileUrl={previewImage}
+                  fileName={getPreviewFile()!.name}
+                  fileSize={getPreviewFile()!.size}
+                />
+              </View>
+            )}
           </View>
         </Modal>
       )}

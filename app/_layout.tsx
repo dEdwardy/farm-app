@@ -6,12 +6,16 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
+import { startNetworkLogging } from 'react-native-network-logger';
 import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
+
+// 启动网络日志记录
+startNetworkLogging();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -24,21 +28,23 @@ export default function RootLayout() {
   //  - 已登录但在 login 页，则跳转到 /(tabs)
   useEffect(() => {
     const runAuthGuard = async () => {
-      // segments 为空时说明导航尚未准备好，暂不处理
-      if (!segments || segments.length === 0) return;
+      try {
+        const isAuthenticated = await authService.checkAuthStatus();
 
-      const isAuthenticated = await authService.checkAuthStatus();
+        const firstSegment = segments[0] as string | undefined;
+        const onLoginScreen = firstSegment === 'login';
 
-      const firstSegment = segments[0] as string | undefined;
-      const onLoginScreen = firstSegment === 'login';
-
-      if (!isAuthenticated && !onLoginScreen) {
-        router.replace('/login');
-      } else if (isAuthenticated && onLoginScreen) {
-        router.replace('/(tabs)');
+        if (!isAuthenticated && !onLoginScreen) {
+          router.replace('/login');
+        } else if (isAuthenticated && onLoginScreen) {
+          router.replace('/(tabs)');
+        }
+      } catch (e) {
+        console.error('Auth guard error:', e);
+      } finally {
+        // 无论鉴权是否出错，都允许应用继续渲染，避免白屏
+        setAuthChecked(true);
       }
-
-      setAuthChecked(true);
     };
 
     runAuthGuard();
@@ -60,7 +66,12 @@ export default function RootLayout() {
 
   // 在完成一次权限检查前，避免闪屏，暂时什么都不渲染
   if (!authChecked) {
-    return null;
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        {/* 简单的启动占位，方便确认不是空白渲染 */}
+        <StatusBar style="auto" />
+      </View>
+    );
   }
 
   return (

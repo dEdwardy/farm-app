@@ -1,6 +1,7 @@
 import { theme } from '@/styles/theme';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FileDownloader } from './FileDownloader';
 import { ImageItemProps } from './types';
 
 const styles = StyleSheet.create({
@@ -83,10 +84,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'white',
     fontWeight: 'bold'
+  },
+  actionButtonsContainer: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    flexDirection: 'row',
   }
 });
 
 export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemProps) {
+  const isUploaded = file.status === 'success' && file.uri.startsWith('http');
+  const showDownload = disabled && isUploaded;
+
   return (
     <>
       <TouchableOpacity 
@@ -114,7 +124,7 @@ export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemP
           <Text style={styles.deleteIcon}>✕</Text>
         </TouchableOpacity>
       )}
-      {file.status === 'success' && (
+      {file.status === 'success' && !showDownload && (
         <View style={[styles.statusIndicator, styles.successIndicator]}>
           <Text style={styles.statusIcon}>✓</Text>
         </View>
@@ -122,6 +132,15 @@ export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemP
       {file.status === 'error' && (
         <View style={[styles.statusIndicator, styles.errorIndicator]}>
           <Text style={styles.statusIcon}>✕</Text>
+        </View>
+      )}
+      {showDownload && (
+        <View style={styles.actionButtonsContainer}>
+          <FileDownloader
+            fileUrl={file.uri}
+            fileName={file.name}
+            fileSize={file.size}
+          />
         </View>
       )}
     </>
