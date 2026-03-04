@@ -9,7 +9,7 @@ export const createFormStyles = (theme: Theme) => StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
   titleContainer: {
@@ -263,7 +263,7 @@ export const createFormStyles = (theme: Theme) => StyleSheet.create({
   fileItem: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.md,
-    padding: 20,
+    padding: 16,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -272,12 +272,14 @@ export const createFormStyles = (theme: Theme) => StyleSheet.create({
   },
   fileInfo: {
     flex: 1,
+    marginRight: 12,
   },
   fileName: {
     fontSize: 14,
     fontWeight: '500',
     color: theme.colors.text.primary,
     marginBottom: 4,
+    lineHeight: 20,
   },
   fileSize: {
     fontSize: 12,

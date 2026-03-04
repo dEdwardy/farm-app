@@ -28,7 +28,8 @@ export const farmFormSchema = z.object({
   total_investment: z.string().optional(),
   farm_images: z.array(z.object({
     url: z.string(),
-    name: z.string()
+    name: z.string(),
+    size: z.number().optional()
   })).optional(),
   // 尾水处理
   has_treatment_facility: z.boolean(),
@@ -38,12 +39,14 @@ export const farmFormSchema = z.object({
   final_destination: z.string().min(1, '请选择养殖尾水最终去向'),
   tail_water_images: z.array(z.object({
     url: z.string(),
-    name: z.string()
+    name: z.string(),
+    size: z.number().optional()
   })).optional(),
   // 安全信息
   safety_info: z.array(z.object({
     url: z.string(),
-    name: z.string()
+    name: z.string(),
+    size: z.number().optional()
   })).optional(),
 });
 

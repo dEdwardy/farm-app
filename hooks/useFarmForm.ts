@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { dataService } from '@/services/dataService';
 import { FarmFormData, farmFormSchema } from '@/types/schemas';
+import { toast } from '@/utils/toast';
 
 interface UseFarmFormOptions {
   initialData?: Partial<FarmFormData>;
@@ -16,7 +17,7 @@ interface UseFarmFormReturn {
   message: string | null;
   messageType: 'success' | 'error' | null;
   handleChange: (key: string, value: string | boolean | any) => void;
-  handleImagesChange: (field: 'farm_images' | 'tail_water_images' | 'safety_info', files: { url: string; name: string }[]) => void;
+  handleImagesChange: (field: 'farm_images' | 'tail_water_images' | 'safety_info', files: { url: string; name: string; size?: number }[]) => void;
   handleImageRemove: (field: 'farm_images' | 'tail_water_images' | 'safety_info', index: number) => void;
   validate: () => boolean;
   submit: (id?: string) => Promise<boolean>;
@@ -80,7 +81,7 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
 
   const handleImagesChange = useCallback((
     field: 'farm_images' | 'tail_water_images' | 'safety_info',
-    files: { url: string; name: string }[]
+    files: { url: string; name: string; size?: number }[]
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -139,18 +140,15 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
       }
 
       if (result) {
-        setMessage(id ? '更新成功' : '创建成功');
-        setMessageType('success');
+        toast.success(id ? '更新成功' : '创建成功');
         onSuccess?.();
         return true;
       } else {
-        setMessage('操作失败');
-        setMessageType('error');
+        toast.error('操作失败，请稍后重试');
         return false;
       }
     } catch (error) {
-      setMessage('操作失败，请稍后重试');
-      setMessageType('error');
+      toast.error('操作失败，请稍后重试');
       return false;
     } finally {
       setLoading(false);

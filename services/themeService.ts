@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Theme, ThemeName, themes, defaultTheme } from '../styles/themes';
+import { defaultTheme, Theme, ThemeName, themes } from '../styles/themes';
 
 const THEME_KEY = 'app_theme';
 
@@ -14,7 +14,6 @@ export const themeService = {
       }
       return themes[defaultTheme];
     } catch (error) {
-      console.error('Error getting theme:', error);
       return themes[defaultTheme];
     }
   },
@@ -25,7 +24,6 @@ export const themeService = {
       await AsyncStorage.setItem(THEME_KEY, themeName);
       return themes[themeName];
     } catch (error) {
-      console.error('Error setting theme:', error);
       return themes[defaultTheme];
     }
   },
@@ -44,7 +42,6 @@ export const themeService = {
       await AsyncStorage.removeItem(THEME_KEY);
       return themes[defaultTheme];
     } catch (error) {
-      console.error('Error resetting theme:', error);
       return themes[defaultTheme];
     }
   },

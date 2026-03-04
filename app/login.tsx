@@ -68,18 +68,14 @@ export default function LoginScreen() {
     }
 
     try {
-      console.log('Attempting to login with:', email);
       const response = await authService.login({ email, password });
 
       if (response.success) {
-        console.log('Login successful',response);
         router.replace('/(tabs)');
       } else {
-        console.log('Login failed:', response.error);
         setError(response.error || '登录失败，请稍后重试');
       }
     } catch (e) {
-      console.error('Login error:', e);
       setError('登录失败，请稍后重试');
     } finally {
       setLoading(false);
@@ -104,18 +100,14 @@ export default function LoginScreen() {
     }
 
     try {
-      console.log('Sending magic link to:', email);
       const response = await authService.loginWithMagicLink(email);
 
       if (response.success) {
-        console.log('Magic link sent successfully');
         setError('登录链接已发送到您的邮箱，请点击链接登录');
       } else {
-        console.log('Magic link failed:', response.error);
         setError(response.error || '发送登录链接失败，请稍后重试');
       }
     } catch (e) {
-      console.error('Magic link error:', e);
       setError('发送登录链接失败，请稍后重试');
     } finally {
       setLoading(false);

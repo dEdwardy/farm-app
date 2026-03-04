@@ -88,7 +88,6 @@ export function useFarmList(options: UseFarmListOptions = {}): UseFarmListReturn
         setData(prev => [...prev, ...response.data]);
       }
     } catch (e) {
-      console.error('Fetch data error:', e);
       if (isMountedRef.current) {
         setError('获取数据失败，请稍后重试');
       }

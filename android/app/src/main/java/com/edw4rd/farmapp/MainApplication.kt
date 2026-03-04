@@ -1,4 +1,4 @@
-package com.edw4rd.app
+package com.edw4rd.farmapp
 
 import android.app.Application
 import android.content.res.Configuration

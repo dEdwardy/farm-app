@@ -1,28 +1,36 @@
 {
   "expo": {
-    "name": "app",
+    "name": "渔场管家",
     "slug": "farm-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.svg",
-    "scheme": "app",
+    "scheme": "farmapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.edw4rd.farmapp",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "用于拍摄养殖场照片",
+        "NSPhotoLibraryUsageDescription": "用于选择养殖场照片"
+      }
     },
     "android": {
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#4CAF50",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.edw4rd.app"
+      "package": "com.edw4rd.farmapp",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
@@ -36,9 +44,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#4CAF50",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#2E7D32"
           }
         }
       ],
@@ -52,7 +60,14 @@
           "enableFileSharing": true
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "允许访问相册以上传养殖场照片",
+          "cameraPermission": "允许使用相机拍摄养殖场照片"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -64,6 +79,13 @@
         "projectId": "ab8f9da4-a672-4009-9551-6253c169bb13"
       }
     },
-    "owner": "edw4rd"
+    "owner": "edw4rd",
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

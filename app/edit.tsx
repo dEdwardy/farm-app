@@ -59,8 +59,6 @@ export default function EditScreen() {
     setErrors({});
 
     try {
-      // 从API获取数据
-      console.log('Fetching data for id:', id);
       const farmData = await dataService.getFarmById(id);
       if (farmData) {
         // 准备原始文件数据
@@ -146,7 +144,6 @@ export default function EditScreen() {
         setErrors({ global: '获取数据失败，未找到该记录' });
       }
     } catch (e) {
-      console.error('Fetch data error:', e);
       setErrors({ global: '获取数据失败，请稍后重试' });
     } finally {
       setLoading(false);
@@ -193,9 +190,6 @@ export default function EditScreen() {
 
   // 处理养殖情况图片删除
   const handleFarmImageRemove = (file: { url: string; name: string }, index: number) => {
-    // 处理文件删除逻辑
-    console.log('删除养殖情况图片:', file, '索引:', index);
-    // 从formData中移除对应的文件URL
     const updatedFarmImages = [...(formData.farm_images || [])];
     updatedFarmImages.splice(index, 1);
     setFormData(prev => ({
@@ -214,9 +208,6 @@ export default function EditScreen() {
 
   // 处理尾水处理图片删除
   const handleTailWaterImageRemove = (file: { url: string; name: string }, index: number) => {
-    // 处理文件删除逻辑
-    console.log('删除尾水处理图片:', file, '索引:', index);
-    // 从formData中移除对应的文件URL
     const updatedTailWaterImages = [...(formData.tail_water_images || [])];
     updatedTailWaterImages.splice(index, 1);
     setFormData(prev => ({
@@ -235,9 +226,6 @@ export default function EditScreen() {
 
   // 处理安全信息文件删除
   const handleSafetyInfoRemove = (file: { url: string; name: string }, index: number) => {
-    // 处理文件删除逻辑
-    console.log('删除安全信息文件:', file, '索引:', index);
-    // 从formData中移除对应的文件URL
     const updatedSafetyInfo = [...(formData.safety_info || [])];
     updatedSafetyInfo.splice(index, 1);
     setFormData(prev => ({
@@ -254,9 +242,6 @@ export default function EditScreen() {
       // 验证表单数据
       farmFormSchema.parse(formData);
 
-      // 提交数据
-      console.log('Updating data:', formData);
-      console.log('Original files count:', originalFiles.length);
       const updatedFarm = await dataService.updateFarm(id, formData, originalFiles);
       
       if (updatedFarm) {
@@ -283,8 +268,6 @@ export default function EditScreen() {
         });
         setErrors(fieldErrors);
       } else {
-        console.error('Submit error:', e);
-        // 显示错误提示
         setMessage('数据更新失败，请稍后重试');
         setMessageType('error');
       }

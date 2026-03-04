@@ -1,15 +1,19 @@
 import { dataService } from '@/services/dataService';
 
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { ImagePreview } from '@/components/common/ImagePreview';
+import { FileDownloader } from '@/components/upload/FileDownloader';
+import { toast } from '@/utils/toast';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { createFormStyles } from '../styles/formStyles';
 import { FarmFormData, farmFormSchema } from '../types/schemas';
 
-// 暂无数据组件
 function NoData({ 
   icon = 'folder-open', 
   text = '暂无数据', 
@@ -76,14 +80,27 @@ export default function DetailScreen() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [originalFiles, setOriginalFiles] = useState<any[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  
+  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
+  const [previewImages, setPreviewImages] = useState<{ url: string; name?: string }[]>([]);
+  const [previewInitialIndex, setPreviewInitialIndex] = useState(0);
+
+  const openImagePreview = useCallback((images: { url: string; name?: string }[], index: number) => {
+    setPreviewImages(images);
+    setPreviewInitialIndex(index);
+    setImagePreviewVisible(true);
+  }, []);
+
+  const closeImagePreview = useCallback(() => {
+    setImagePreviewVisible(false);
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setErrors({});
 
     try {
-      // 从API获取数据
-      console.log('Fetching data for id:', id);
       const farmData = await dataService.getFarmById(id);
       if (farmData) {
         // 准备原始文件数据
@@ -165,40 +182,10 @@ export default function DetailScreen() {
           tail_water_images: Array.isArray(farmData.tail_water_images) ? farmData.tail_water_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
           safety_info: Array.isArray(farmData.safety_info) ? farmData.safety_info.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
         });
-        setTimeout(() => {
-          console.log({
-          farm_name: String(farmData.farm_name ?? ''),
-          address: String(farmData.address ?? ''),
-          longitude_latitude: String(farmData.longitude_latitude ?? ''),
-          responsible_person: String(farmData.responsible_person ?? ''),
-          contact_phone: String(farmData.contact_phone ?? ''),
-          pond_count: String(farmData.pond_count ?? ''),
-          water_area_acre: String(farmData.water_area_acre ?? ''),
-          farm_area_acre: String(farmData.farm_area_acre ?? ''),
-          other_water_area_sqm: String(farmData.other_water_area_sqm ?? ''),
-          other_farm_area_acre: String(farmData.other_farm_area_acre ?? ''),
-          avg_water_depth: String(farmData.avg_water_depth ?? ''),
-          main_species: String(farmData.main_species ?? ''),
-          farm_mode: String(farmData.farm_mode ?? ''),
-          operation_status: String(farmData.operation_status ?? ''),
-          output: String(farmData.output ?? ''),
-          output_value: String(farmData.output_value ?? ''),
-          total_investment: String(farmData.total_investment ?? ''),
-          farm_images: Array.isArray(farmData.farm_images) ? farmData.farm_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
-          has_treatment_facility: Boolean(farmData.has_treatment_facility ?? false),
-          treatment_method: String(farmData.treatment_method ?? ''),
-          treatment_facility_area: String(farmData.treatment_facility_area ?? ''),
-          treated_discharge_volume: String(farmData.treated_discharge_volume ?? ''),
-          final_destination: String(farmData.final_destination ?? ''),
-          tail_water_images: Array.isArray(farmData.tail_water_images) ? farmData.tail_water_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
-          safety_info: Array.isArray(farmData.safety_info) ? farmData.safety_info.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
-        })
-        }, 500);
       } else {
         setErrors({ global: '获取数据失败，未找到该记录' });
       }
     } catch (e) {
-      console.error('Fetch data error:', e);
       setErrors({ global: '获取数据失败，请稍后重试' });
     } finally {
       setLoading(false);
@@ -234,9 +221,6 @@ export default function DetailScreen() {
 
   // 处理养殖情况图片删除
   const handleFarmImageRemove = (file: { url: string; name: string }, index: number) => {
-    // 处理文件删除逻辑
-    console.log('删除养殖情况图片:', file, '索引:', index);
-    // 从formData中移除对应的文件URL
     const updatedFarmImages = [...(formData.farm_images || [])];
     updatedFarmImages.splice(index, 1);
     setFormData(prev => ({
@@ -255,9 +239,6 @@ export default function DetailScreen() {
 
   // 处理尾水处理图片删除
   const handleTailWaterImageRemove = (file: { url: string; name: string }, index: number) => {
-    // 处理文件删除逻辑
-    console.log('删除尾水处理图片:', file, '索引:', index);
-    // 从formData中移除对应的文件URL
     const updatedTailWaterImages = [...(formData.tail_water_images || [])];
     updatedTailWaterImages.splice(index, 1);
     setFormData(prev => ({
@@ -276,9 +257,6 @@ export default function DetailScreen() {
 
   // 处理安全信息文件删除
   const handleSafetyInfoRemove = (file: { url: string; name: string }, index: number) => {
-    // 处理文件删除逻辑
-    console.log('删除安全信息文件:', file, '索引:', index);
-    // 从formData中移除对应的文件URL
     const updatedSafetyInfo = [...(formData.safety_info || [])];
     updatedSafetyInfo.splice(index, 1);
     setFormData(prev => ({
@@ -296,9 +274,6 @@ export default function DetailScreen() {
       // 验证表单数据
       farmFormSchema.parse(formData);
 
-      // 更新数据
-      console.log('Updating data:', formData);
-      console.log('Original files count:', originalFiles.length);
       const updatedFarm = await dataService.updateFarm(id, formData, originalFiles);
       
       if (updatedFarm) {
@@ -321,14 +296,14 @@ export default function DetailScreen() {
           output: String(updatedFarm.output ?? ''),
           output_value: String(updatedFarm.output_value ?? ''),
           total_investment: String(updatedFarm.total_investment ?? ''),
-          farm_images: Array.isArray(updatedFarm.farm_images) ? updatedFarm.farm_images : [],
+          farm_images: Array.isArray(updatedFarm.farm_images) ? updatedFarm.farm_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '' } : { url: item.url, name: item.name }) : [],
           has_treatment_facility: Boolean(updatedFarm.has_treatment_facility ?? false),
           treatment_method: String(updatedFarm.treatment_method ?? ''),
           treatment_facility_area: String(updatedFarm.treatment_facility_area ?? ''),
           treated_discharge_volume: String(updatedFarm.treated_discharge_volume ?? ''),
           final_destination: String(updatedFarm.final_destination ?? ''),
-          tail_water_images: Array.isArray(updatedFarm.tail_water_images) ? updatedFarm.tail_water_images : [],
-          safety_info: Array.isArray(updatedFarm.safety_info) ? updatedFarm.safety_info : [],
+          tail_water_images: Array.isArray(updatedFarm.tail_water_images) ? updatedFarm.tail_water_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '' } : { url: item.url, name: item.name }) : [],
+          safety_info: Array.isArray(updatedFarm.safety_info) ? updatedFarm.safety_info.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '' } : { url: item.url, name: item.name }) : [],
         });
         setSuccess('数据更新成功！');
         setIsEditing(false);
@@ -349,7 +324,6 @@ export default function DetailScreen() {
         }
         setErrors(fieldErrors);
       } else {
-        console.error('Update error:', e);
         setErrors({ global: '数据更新失败，请稍后重试' });
       }
     } finally {
@@ -446,15 +420,25 @@ export default function DetailScreen() {
           <View style={styles.infoRowHorizontal}>
             <Text style={styles.infoLabelHorizontal}>养殖情况图片</Text>
             <View style={styles.imageGrid}>
-              {formData.farm_images && formData.farm_images.length > 0 ? (
-                formData.farm_images.map((image, index) => (
-                  <View key={index} style={styles.imageItem}>
+              {(formData.farm_images ?? []).length > 0 ? (
+                (formData.farm_images ?? []).map((image, index) => (
+                  <TouchableOpacity 
+                    key={index} 
+                    style={styles.imageItem}
+                    onPress={() => openImagePreview(
+                      (formData.farm_images ?? []).map(img => ({ url: img.url, name: img.name })),
+                      index
+                    )}
+                    activeOpacity={0.9}
+                  >
                     <Image 
                       source={{ uri: image.url }} 
                       style={styles.image}
-                      resizeMode="cover"
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                      transition={200}
                     />
-                  </View>
+                  </TouchableOpacity>
                 ))
               ) : (
                 <View style={styles.imageItemEmpty}>
@@ -491,15 +475,25 @@ export default function DetailScreen() {
           <View style={styles.infoRowHorizontal}>
             <Text style={styles.infoLabelHorizontal}>尾水处理图片</Text>
             <View style={styles.imageGrid}>
-              {formData.tail_water_images && formData.tail_water_images.length > 0 ? (
-                formData.tail_water_images.map((image, index) => (
-                  <View key={index} style={styles.imageItem}>
+              {(formData.tail_water_images ?? []).length > 0 ? (
+                (formData.tail_water_images ?? []).map((image, index) => (
+                  <TouchableOpacity 
+                    key={index} 
+                    style={styles.imageItem}
+                    onPress={() => openImagePreview(
+                      (formData.tail_water_images ?? []).map(img => ({ url: img.url, name: img.name })),
+                      index
+                    )}
+                    activeOpacity={0.9}
+                  >
                     <Image 
                       source={{ uri: image.url }} 
                       style={styles.image}
-                      resizeMode="cover"
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                      transition={200}
                     />
-                  </View>
+                  </TouchableOpacity>
                 ))
               ) : (
                 <View style={styles.imageItemEmpty}>
@@ -520,17 +514,14 @@ export default function DetailScreen() {
                 formData.safety_info.map((file, index) => (
                   <View key={index} style={styles.fileItem}>
                     <View style={styles.fileInfo}>
-                      <Text style={styles.fileName} numberOfLines={1} ellipsizeMode="middle">{file.name}</Text>
+                      <Text style={styles.fileName} numberOfLines={2} ellipsizeMode="tail">{file.name}</Text>
                       <Text style={styles.fileSize}>{(file as any).size ? `${((file as any).size / 1024 / 1024).toFixed(2)} MB` : '未知大小'}</Text>
                     </View>
-                    <View style={styles.fileActions}>
-                      <TouchableOpacity style={styles.actionButton}>
-                        <Text style={styles.downloadIcon}>⬇️</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.actionButton}>
-                        <Text style={styles.shareIcon}>🔗</Text>
-                      </TouchableOpacity>
-                    </View>
+                    <FileDownloader
+                      fileUrl={file.url}
+                      fileName={file.name}
+                      fileSize={(file as any).size}
+                    />
                   </View>
                 ))
               ) : (
@@ -569,14 +560,51 @@ export default function DetailScreen() {
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => {
-            // 实现删除逻辑
-            console.log('Delete farm:', id);
+            setShowDeleteDialog(true);
           }}
           activeOpacity={0.7}
         >
           <Text style={styles.deleteButtonText}>删除</Text>
         </TouchableOpacity>
       </View>
+
+      <ConfirmDialog
+        visible={showDeleteDialog}
+        title="确认删除"
+        message="确定要删除这个养殖场信息吗？此操作不可恢复。"
+        confirmText="删除"
+        cancelText="取消"
+        destructive={true}
+        onConfirm={async () => {
+          setShowDeleteDialog(false);
+          setTimeout(async () => {
+            try {
+              setLoading(true);
+              const success = await dataService.softDeleteFarm(id);
+              if (success) {
+                toast.success('养殖场信息已成功删除');
+                router.push('/(tabs)');
+              } else {
+                toast.error('删除养殖场信息失败，请稍后重试');
+              }
+            } catch (error) {
+              toast.error('删除过程中出现错误，请稍后重试');
+            } finally {
+              setLoading(false);
+            }
+          }, 160);
+        }}
+        onCancel={() => {
+          setShowDeleteDialog(false);
+        }}
+      />
+
+      <ImagePreview
+        visible={imagePreviewVisible}
+        images={previewImages}
+        initialIndex={previewInitialIndex}
+        onClose={closeImagePreview}
+      />
     </SafeAreaView>
   );
 }

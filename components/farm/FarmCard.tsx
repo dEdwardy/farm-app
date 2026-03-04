@@ -66,7 +66,7 @@ export const FarmCard: React.FC<FarmCardProps> = React.memo(({ farm, searchQuery
         </Text>
         <View style={indexStyles.farmTypeBadge}>
           <Text style={indexStyles.farmTypeBadgeText}>
-            {farm.farm_type || '水产养殖'}
+            {farm.farm_mode}
           </Text>
         </View>
       </View>

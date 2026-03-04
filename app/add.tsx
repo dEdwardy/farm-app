@@ -1,5 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import { Overlay } from '@rneui/base';
 import { useRouter } from 'expo-router';
 import React, { useLayoutEffect } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -21,13 +20,10 @@ export default function AddScreen() {
     formData,
     errors,
     loading,
-    message,
-    messageType,
     handleChange,
     handleImagesChange,
     handleImageRemove,
     submit,
-    resetMessage,
   } = useFarmForm({
     onSuccess: () => {
       // 2秒后返回列表页
@@ -148,25 +144,6 @@ export default function AddScreen() {
             />
           </View>
         </View>
-
-        {/* 消息提示 */}
-        <Overlay
-          isVisible={!!message}
-          onBackdropPress={resetMessage}
-          overlayStyle={[
-            styles.overlay,
-            messageType === 'success' ? styles.successOverlay : styles.errorOverlay,
-          ]}
-        >
-          <Text
-            style={[
-              styles.overlayText,
-              messageType === 'success' ? styles.successText : styles.errorText,
-            ]}
-          >
-            {message}
-          </Text>
-        </Overlay>
       </ScrollView>
     </SafeAreaView>
   );

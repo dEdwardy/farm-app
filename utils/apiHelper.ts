@@ -1,4 +1,4 @@
-import { supabase, supabaseInitError } from '@/lib/supabase';
+import { getSupabase, supabaseInitError } from '@/lib/supabase';
 
 export interface ApiResponse<T> {
   data: T | null;
@@ -13,22 +13,15 @@ export interface PaginatedResponse<T> {
   success: boolean;
 }
 
-/**
- * 检查 Supabase 是否初始化
- */
-export function checkSupabase(): { ok: true } | { ok: false; error: string } {
-  if (!supabase) {
+export async function checkSupabase(): Promise<{ ok: true; client: NonNullable<Awaited<ReturnType<typeof getSupabase>>> } | { ok: false; error: string }> {
+  const client = await getSupabase();
+  if (!client) {
     return { ok: false, error: supabaseInitError ?? 'Supabase 未初始化' };
   }
-  return { ok: true };
+  return { ok: true, client };
 }
 
-/**
- * 统一错误处理
- */
 export function handleError(error: unknown, defaultMessage: string): string {
-  console.error(defaultMessage, error);
-  
   if (error instanceof Error) {
     return error.message;
   }
@@ -40,23 +33,14 @@ export function handleError(error: unknown, defaultMessage: string): string {
   return defaultMessage;
 }
 
-/**
- * 创建成功的 API 响应
- */
 export function createSuccessResponse<T>(data: T): ApiResponse<T> {
   return { data, success: true };
 }
 
-/**
- * 创建失败的 API 响应
- */
 export function createErrorResponse<T>(error: string): ApiResponse<T> {
   return { data: null, error, success: false };
 }
 
-/**
- * 创建分页成功的响应
- */
 export function createPaginatedSuccessResponse<T>(
   data: T[],
   totalCount: number
@@ -64,9 +48,6 @@ export function createPaginatedSuccessResponse<T>(
   return { data, totalCount, success: true };
 }
 
-/**
- * 创建分页失败的响应
- */
 export function createPaginatedErrorResponse<T>(error: string): PaginatedResponse<T> {
   return { data: [], totalCount: 0, error, success: false };
 }

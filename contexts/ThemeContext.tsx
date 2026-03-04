@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Theme, ThemeName } from '../styles/themes';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { themeService } from '../services/themeService';
+import { Theme, ThemeName } from '../styles/themes';
 
 interface ThemeContextType {
   theme: Theme;
@@ -33,7 +33,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         const currentTheme = await themeService.getCurrentTheme();
         setThemeState(currentTheme);
       } catch (error) {
-        console.error('Error loading theme:', error);
       } finally {
         setIsLoading(false);
       }
@@ -48,7 +47,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       const newTheme = await themeService.setTheme(themeName);
       setThemeState(newTheme);
     } catch (error) {
-      console.error('Error setting theme:', error);
     }
   };
 

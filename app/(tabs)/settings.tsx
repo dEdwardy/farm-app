@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { authService } from '@/services/authService';
@@ -40,8 +41,6 @@ export default function SettingsScreen() {
         setUser({ username: '用户' });
       }
     } catch (e) {
-      console.error('Fetch user info error:', e);
-      // 出错时使用默认值
       setUser({ username: '用户' });
     } finally {
       setLoading(false);
@@ -54,7 +53,6 @@ export default function SettingsScreen() {
       await authService.logout();
       router.replace('/login');
     } catch (e) {
-      console.error('Logout error:', e);
     }
   };
 
@@ -76,7 +74,13 @@ export default function SettingsScreen() {
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             {user?.avatar ? (
-              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+              <Image 
+                source={{ uri: user.avatar }} 
+                style={styles.avatar}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={200}
+              />
             ) : (
               <View style={styles.defaultAvatar}>
                 <Text style={styles.defaultAvatarText}>

@@ -24,7 +24,7 @@ export interface FarmBaseInfo {
   longitude_latitude?: string;
   responsible_person: string;
   contact_phone: string;
-  farm_type?: string;
+  farm_mode?: string;
 }
 
 // 养殖情况信息

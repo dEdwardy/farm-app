@@ -1,8 +1,8 @@
-import { supabase, supabaseInitError } from '@/lib/supabase';
+import { checkSupabase, handleError } from '@/utils/apiHelper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
- const TOKEN_KEY = 'auth_token';
- const UINFO_KEY = 'user_info';
+const TOKEN_KEY = 'auth_token';
+const UINFO_KEY = 'user_info';
 
 export interface LoginCredentials {
   email: string;
@@ -16,21 +16,18 @@ export interface AuthResponse {
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    if (!supabase) {
-      return {
-        success: false,
-        error: supabaseInitError ?? 'Supabase 未初始化'
-      };
+    const check = await checkSupabase();
+    if (!check.ok) {
+      return { success: false, error: check.error };
     }
 
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await check.client.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
       });
 
       if (authError) {
-        console.warn('Auth error:', authError);
         return {
           success: false,
           error: authError.code === 'invalid_credentials' ? '邮箱或密码错误' : '登录失败，请稍后重试'
@@ -40,36 +37,24 @@ export const authService = {
           await AsyncStorage.setItem(TOKEN_KEY, 'logged_in');
           await AsyncStorage.setItem(UINFO_KEY, JSON.stringify(data.user ?? {}) );
         } catch (e) {
-          // ignore storage error, still allow access
         }
-        return {
-          success: true
-        };
+        return { success: true };
       } else {
-        return {
-          success: false,
-          error: '邮箱或密码错误'
-        };
+        return { success: false, error: '邮箱或密码错误' };
       }
     } catch (e) {
-      console.error('Login error:', e);
-      return {
-        success: false,
-        error: '登录失败，请稍后重试'
-      };
+      return { success: false, error: handleError(e, '登录失败，请稍后重试') };
     }
   },
 
   async loginWithMagicLink(email: string): Promise<AuthResponse> {
-    if (!supabase) {
-      return {
-        success: false,
-        error: supabaseInitError ?? 'Supabase 未初始化'
-      };
+    const check = await checkSupabase();
+    if (!check.ok) {
+      return { success: false, error: check.error };
     }
 
     try {
-      const { error: authError } = await supabase.auth.signInWithOtp({
+      const { error: authError } = await check.client.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: 'com.your-app-name://login',
@@ -77,63 +62,65 @@ export const authService = {
       });
 
       if (authError) {
-        console.warn('Magic link error:', authError);
-        return {
-          success: false,
-          error: '发送登录链接失败，请稍后重试'
-        };
-      } else {
-        return {
-          success: true
-        };
+        return { success: false, error: '发送登录链接失败，请稍后重试' };
       }
+      return { success: true };
     } catch (e) {
-      console.error('Magic link error:', e);
-      return {
-        success: false,
-        error: '发送登录链接失败，请稍后重试'
-      };
+      return { success: false, error: handleError(e, '发送登录链接失败，请稍后重试') };
     }
   },
 
   async logout(): Promise<boolean> {
+    const check = await checkSupabase();
+    if (!check.ok) {
+      return false;
+    }
+
     try {
-      // Clear auth token
-      await AsyncStorage.removeItem(TOKEN_KEY);
-      await AsyncStorage.removeItem(UINFO_KEY);
-      
-      // Sign out from Supabase
-      if (supabase) {
-        await supabase.auth.signOut();
+      const { error } = await check.client.auth.signOut();
+      if (error) {
+        return false;
       }
-      
+      try {
+        await AsyncStorage.removeItem(TOKEN_KEY);
+        await AsyncStorage.removeItem(UINFO_KEY);
+      } catch (e) {
+      }
       return true;
     } catch (e) {
-      console.error('Logout error:', e);
       return false;
     }
   },
 
   async checkAuthStatus(): Promise<boolean> {
+    const check = await checkSupabase();
+    if (!check.ok) {
+      return false;
+    }
+
     try {
+      const { data: { session } } = await check.client.auth.getSession();
+      if (session) {
+        return true;
+      }
+      
       const token = await AsyncStorage.getItem(TOKEN_KEY);
       return !!token;
     } catch (e) {
-      console.error('Check auth status error:', e);
       return false;
     }
   },
 
   async getCurrentUser() {
-    if (!supabase) {
+    const check = await checkSupabase();
+    if (!check.ok) {
       return null;
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await check.client.auth.getUser();
       return user;
     } catch (e) {
-      console.error('Get current user error:', e);
       return null;
     }
   }

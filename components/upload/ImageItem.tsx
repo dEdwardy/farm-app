@@ -1,8 +1,67 @@
 import { theme } from '@/styles/theme';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FileDownloader } from './FileDownloader';
 import { ImageItemProps } from './types';
+
+export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemProps) {
+  const isUploaded = file.status === 'success' && file.uri.startsWith('http');
+  const showShare = disabled && isUploaded;
+
+  return (
+    <>
+      <TouchableOpacity 
+        style={styles.imageContainer}
+        onPress={() => onImagePress(file.uri)}
+        activeOpacity={0.9}
+      >
+        <Image 
+          source={{ uri: file.uri }} 
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={200}
+        />
+        {file.status === 'uploading' && file.progress !== undefined && (
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${file.progress}%` }]} />
+          </View>
+        )}
+      </TouchableOpacity>
+      {!disabled && onRemove && (
+        <TouchableOpacity 
+          onPress={() => onRemove(file)} 
+          style={styles.deleteButton}
+          disabled={disabled}
+          activeOpacity={0.8}
+        >
+          <MaterialIcons name="close" size={18} color="white" />
+        </TouchableOpacity>
+      )}
+      {file.status === 'success' && !showShare && (
+        <View style={styles.statusIndicator}>
+          <MaterialIcons name="check-circle" size={24} color="#4CAF50" />
+        </View>
+      )}
+      {file.status === 'error' && (
+        <View style={styles.statusIndicator}>
+          <MaterialIcons name="error" size={24} color={theme.colors.error} />
+        </View>
+      )}
+      {showShare && (
+        <View style={styles.shareButtonContainer}>
+          <FileDownloader
+            fileUrl={file.uri}
+            fileName={file.name}
+            fileSize={file.size}
+          />
+        </View>
+      )}
+    </>
+  );
+}
 
 const styles = StyleSheet.create({
   imageContainer: {
@@ -36,113 +95,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.6)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  deleteIcon: {
-    fontSize: 18,
-    color: 'white',
-    fontWeight: 'bold'
   },
   statusIndicator: {
     position: 'absolute',
     bottom: 8,
     right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
-  successIndicator: {
-    backgroundColor: 'rgba(40, 167, 69, 0.95)'
-  },
-  errorIndicator: {
-    backgroundColor: 'rgba(220, 53, 69, 0.95)'
-  },
-  statusIcon: {
-    fontSize: 18,
-    color: 'white',
-    fontWeight: 'bold'
-  },
-  actionButtonsContainer: {
+  shareButtonContainer: {
     position: 'absolute',
     bottom: 8,
     left: 8,
-    flexDirection: 'row',
   }
 });
-
-export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemProps) {
-  const isUploaded = file.status === 'success' && file.uri.startsWith('http');
-  const showDownload = disabled && isUploaded;
-
-  return (
-    <>
-      <TouchableOpacity 
-        style={styles.imageContainer}
-        onPress={() => onImagePress(file.uri)}
-        activeOpacity={0.9}
-      >
-        <Image 
-          source={{ uri: file.uri }} 
-          style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
-        />
-        {file.status === 'uploading' && file.progress !== undefined && (
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${file.progress}%` }]} />
-          </View>
-        )}
-      </TouchableOpacity>
-      {!disabled && onRemove && (
-        <TouchableOpacity 
-          onPress={() => onRemove(file)} 
-          style={styles.deleteButton}
-          disabled={disabled}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.deleteIcon}>✕</Text>
-        </TouchableOpacity>
-      )}
-      {file.status === 'success' && !showDownload && (
-        <View style={[styles.statusIndicator, styles.successIndicator]}>
-          <Text style={styles.statusIcon}>✓</Text>
-        </View>
-      )}
-      {file.status === 'error' && (
-        <View style={[styles.statusIndicator, styles.errorIndicator]}>
-          <Text style={styles.statusIcon}>✕</Text>
-        </View>
-      )}
-      {showDownload && (
-        <View style={styles.actionButtonsContainer}>
-          <FileDownloader
-            fileUrl={file.uri}
-            fileName={file.name}
-            fileSize={file.size}
-          />
-        </View>
-      )}
-    </>
-  );
-}

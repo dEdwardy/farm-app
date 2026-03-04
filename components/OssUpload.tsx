@@ -1,7 +1,6 @@
 import { getOssPresignedUrl } from '@/services/ossService';
 import { getContentTypeByExtension, getFileUrl } from '@/utils/fileUtils';
 import { FileSystemUploadType, uploadAsync } from 'expo-file-system/legacy';
-import { encode } from 'js-base64';
 import React, { useState } from 'react';
 import { UploadComponent } from './upload';
 import { FileInfo, FileItem } from './upload/types';
@@ -11,14 +10,14 @@ interface OssUploadProps {
   onFileRemove?: (file: { url: string; name: string; size: number }, index: number) => void;
   onUploading?: (uploading: boolean) => void;
   maxFiles?: number;
-  maxFileSize?: number; // 单位：字节
+  maxFileSize?: number;
   autoUpload?: boolean;
   capture?: boolean;
   disabled?: boolean;
-  uploadType?: 'image' | 'file'; // image: 图片上传, file: 文件上传
-  previewType?: 'list' | 'picture'; // list: 列表模式, picture: 九宫格模式
-  initialFiles?: (string | FileInfo)[]; // 初始文件URL数组或FileInfo数组
-  loading?: boolean; // 控制上传状态
+  uploadType?: 'image' | 'file';
+  previewType?: 'list' | 'picture';
+  initialFiles?: (string | FileInfo)[];
+  loading?: boolean;
 }
 
 export function OssUpload({ 
@@ -30,22 +29,19 @@ export function OssUpload({
   autoUpload = true,
   capture = false,
   disabled = false,
-  uploadType = 'file', // 默认文件上传
-  previewType, // 可选，不设置则根据uploadType自动决定
-  initialFiles = [], // 初始文件URL数组
+  uploadType = 'file',
+  previewType,
+  initialFiles = [],
   loading = false
 }: OssUploadProps) {
   const [uploading, setUploading] = useState(false);
 
-  // 处理上传完成回调
   const handleUploadComplete = async (files: FileItem[]) => {
     if (loading) return;
     
-    // 只处理状态为ready的文件
     const filesToUpload = files.filter(file => file.status === 'ready');
     
     if (filesToUpload.length === 0) {
-      // 如果没有需要上传的文件，直接返回当前文件列表
       const currentFiles = files.map(file => ({
         url: file.uri,
         name: file.name,
@@ -59,35 +55,36 @@ export function OssUpload({
     onUploading?.(true);
 
     try {
-      const uploadedFiles = [];
-      // 逐个上传文件
+      const uploadedFiles: { url: string; name: string; size: number }[] = [];
+      
       for (const file of filesToUpload) {
-        try {
-          const fileName = file.name;
-          const fileType = getContentTypeByExtension(fileName);
-          const { uploadUrl, originalName } = await getOssPresignedUrl(fileName, fileType);
-          
-          // 使用 FileSystem.uploadAsync 上传文件
-          // 这是专门用于文件上传的 API
-          await uploadAsync(uploadUrl, file.uri, {
-            httpMethod: 'PUT',
-            uploadType: FileSystemUploadType.BINARY_CONTENT,
-            headers: {
-              'Content-Type': fileType,
-              'x-oss-meta-original-name': encode(originalName),
-            },
-          });
-          
-          // 获取文件的访问URL
+        const fileName = file.name;
+        const fileType = getContentTypeByExtension(fileName);
+        
+        const presignedResult = await getOssPresignedUrl(fileName, fileType);
+        
+        if (!presignedResult || !presignedResult.uploadUrl) {
+          throw new Error('获取预签名URL失败');
+        }
+        
+        const { uploadUrl } = presignedResult;
+        console.log('uploadUrl:', uploadUrl,file.uri,file.name,file.size);
+        const uploadResult = await uploadAsync(uploadUrl, file.uri, {
+          httpMethod: 'PUT',
+          uploadType: FileSystemUploadType.BINARY_CONTENT,
+          // headers: {
+          //   'Content-Type': fileType,
+          // },
+        });
+        
+        if (uploadResult && (uploadResult.status === 200 || uploadResult.status === 204)) {
           const fileUrl = getFileUrl(uploadUrl);
           uploadedFiles.push({ url: fileUrl, name: fileName, size: file.size });
-        } catch (error) {
-          console.error('上传文件失败:', error);
-          // 继续上传其他文件，不因为单个文件失败而中断
+        } else {
+          throw new Error(`上传失败: HTTP ${uploadResult?.status || 'unknown'}`);
         }
       }
       
-      // 合并已上传的文件和之前的文件
       const existingFiles = files
         .filter(file => file.status === 'success')
         .map(file => ({ url: file.uri, name: file.name, size: file.size }));
@@ -95,14 +92,13 @@ export function OssUpload({
       const allFiles = [...existingFiles, ...uploadedFiles];
       onUploadComplete(allFiles);
     } catch (error) {
-      console.error('上传过程失败:', error);
+      throw error;
     } finally {
       setUploading(false);
       onUploading?.(false);
     }
   };
 
-  // 处理文件删除回调
   const handleFileRemove = (file: FileItem, index: number) => {
     if (loading) return;
     

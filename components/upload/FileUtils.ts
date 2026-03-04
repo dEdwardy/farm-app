@@ -53,7 +53,6 @@ export class FileUtils {
       const result = await downloadAsync(url, downloadUri, options);
       return result.uri;
     } catch (error) {
-      console.error('下载文件失败:', error);
       throw error;
     }
   }
@@ -72,7 +71,6 @@ export class FileUtils {
       }
       return false;
     } catch (error) {
-      console.error('分享文件失败:', error);
       return false;
     }
   }

@@ -1,4 +1,4 @@
-package com.edw4rd.app
+package com.edw4rd.farmapp
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
