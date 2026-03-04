@@ -232,8 +232,8 @@ export const renderFormField = (
               value={value}
               onValueChange={(val) => onChange(field.name, val)}
               disabled={disabled}
-              trackColor={{ false: '#767577', true: '#81b0ff' }}
-              thumbColor={value ? '#1976d2' : '#f4f3f4'}
+              trackColor={{ false: '#E0E0E0', true: '#4CAF50' }}
+              thumbColor={value ? '#FFFFFF' : '#F4F3F4'}
             />
           </View>
           {error && <Text style={styles.errorText}>{error}</Text>}
@@ -246,31 +246,33 @@ export const renderFormField = (
 
 const styles = StyleSheet.create({
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   labelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   label: {
     fontSize: 14,
-    color: '#6c757d',
+    fontWeight: '500',
+    color: '#333333',
   },
   requiredMark: {
-    color: '#dc3545',
+    color: '#FF5722',
     marginLeft: 4,
     fontSize: 14,
   },
   inputBox: {
     width: '100%',
+    padding: 0,
   },
   inputText: {
-    fontSize: 16,
+    fontSize: 14,
   },
   placeholderText: {
     fontSize: 14,
-    color: '#999',
+    color: '#9E9E9E',
   },
   switchContainer: {
     flexDirection: 'row',
@@ -280,8 +282,8 @@ const styles = StyleSheet.create({
   },
 
   errorText: {
-    fontSize: 12,
-    color: '#dc3545',
+    fontSize: 14,
+    color: '#FF5722',
     marginTop: 4,
   },
 });

@@ -1,0 +1,48 @@
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Defs, Ellipse, LinearGradient, Path, Stop, Svg } from 'react-native-svg';
+
+interface AppLogoSimpleProps {
+  size?: number;
+  style?: any;
+  color?: string;
+}
+
+export const AppLogoSimple: React.FC<AppLogoSimpleProps> = ({ 
+  size = 80, 
+  style,
+  color = '#4CAF50'
+}) => {
+  return (
+    <View style={[styles.container, { width: size, height: size }, style]}>
+      <Svg width={size} height={size} viewBox="0 0 512 512">
+        <Defs>
+          <LinearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor={color} stopOpacity="1" />
+            <Stop offset="100%" stopColor="#2196F3" stopOpacity="1" />
+          </LinearGradient>
+        </Defs>
+        
+        <Path d="M256,96 C341,96 416,136 416,256 C416,376 341,416 256,416 C171,416 96,376 96,256 C96,136 171,96 256,96 Z" 
+              fill="url(#logoGradient)"/>
+        
+        <Path d="M192,213 C234,171 320,171 362,213 C383,256 362,320 320,341 C277,362 213,341 192,299 C171,277 171,234 192,213 Z" 
+              fill="white" opacity="0.95"/>
+        
+        <Ellipse cx="256" cy="235" rx="43" ry="32" fill="#E8F5E9"/>
+        
+        <Path d="M256,277 L277,299 L235,299 Z" fill="#2E7D32"/>
+        
+        <Path d="M220,240 Q235,230 250,240" stroke="#81C784" strokeWidth="3" fill="none" opacity="0.5"/>
+        <Path d="M262,240 Q277,230 292,240" stroke="#81C784" strokeWidth="3" fill="none" opacity="0.5"/>
+      </Svg>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

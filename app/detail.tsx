@@ -1,18 +1,47 @@
 import { dataService } from '@/services/dataService';
 
+import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { formFields, renderFormField } from '../components/FormFields';
-import { OssUpload } from '../components/OssUpload';
-import { formStyles } from '../styles/formStyles';
+import { useTheme } from '../contexts/ThemeContext';
+import { createFormStyles } from '../styles/formStyles';
 import { FarmFormData, farmFormSchema } from '../types/schemas';
+
+// 暂无数据组件
+function NoData({ 
+  icon = 'folder-open', 
+  text = '暂无数据', 
+  style 
+}: { 
+  icon?: React.ComponentProps<typeof MaterialIcons>['name']; 
+  text?: string; 
+  style?: object 
+}) {
+  return (
+    <View style={[
+      {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
+        borderRadius: 8,
+        padding: 24,
+      },
+      style
+    ]}>
+      <MaterialIcons name={icon} size={48} color="#999" style={{ marginBottom: 8 }} />
+      <Text style={{ fontSize: 14, color: '#999', textAlign: 'center' }}>{text}</Text>
+    </View>
+  );
+}
 
 export default function DetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const id = params.id as string;
+  const { theme } = useTheme();
+  const styles = createFormStyles(theme);
 
   const [formData, setFormData] = useState<FarmFormData>({
     farm_name: '',
@@ -330,8 +359,8 @@ export default function DetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={formStyles.safeArea}>
-        <View style={formStyles.centerContainer}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.centerContainer}>
           <Text>加载中...</Text>
         </View>
       </SafeAreaView>
@@ -339,170 +368,215 @@ export default function DetailScreen() {
   }
 
   return (
-    <SafeAreaView style={formStyles.safeArea}>
-      <ScrollView contentContainerStyle={formStyles.scrollContent}>
-        <View style={formStyles.titleContainer}>
-          <Text style={formStyles.heading}>数据详情</Text>
-          <Text style={formStyles.subtitle}>查看和修改数据</Text>
-        </View>
-
-        <View style={formStyles.formContainer}>
-          {/* 场所信息 */}
-          <View style={formStyles.section}>
-            <Text style={formStyles.sectionTitle}>场所信息</Text>
-            {formFields.slice(0, 5).map((field) => (
-              <View key={field.name}>
-                {renderFormField(
-                  field,
-                  formData[field.name as keyof typeof formData],
-                  handleChange,
-                  errors[field.name],
-                  !isEditing
-                )}
-              </View>
-            ))}
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* 场所信息 */}
+        <View style={styles.formContainer}>
+          <Text style={styles.sectionTitle}>场所信息</Text>
+          <Text style={styles.farmName}>{formData.farm_name}</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>详细地址</Text>
+            <Text style={styles.infoValue}>{formData.address}</Text>
           </View>
-
-          {/* 养殖情况 */}
-          <View style={formStyles.section}>
-            <Text style={formStyles.sectionTitle}>养殖情况</Text>
-            {formFields.slice(5, 17).map((field) => (
-              <View key={field.name}>
-                {renderFormField(
-                  field,
-                  formData[field.name as keyof typeof formData],
-                  handleChange,
-                  errors[field.name],
-                  !isEditing
-                )}
-              </View>
-            ))}
-            {/* 养殖情况图片上传 */}
-            <View style={formStyles.formGroup}>
-              <Text style={{ fontSize: 14, color: 'rgba(108,117,125,1.00)', marginBottom: 4 }}>养殖情况图片</Text>
-              <OssUpload
-                onUploadComplete={handleFarmImagesUpload}
-                onFileRemove={handleFarmImageRemove}
-                onUploading={setUploading}
-                maxFiles={5}
-                uploadType="image"
-                previewType="picture"
-                disabled={!isEditing}
-                initialFiles={formData.farm_images || []}
-                loading={loading}
-              />
-            </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>经纬度</Text>
+            <Text style={styles.infoValue}>{formData.longitude_latitude}</Text>
           </View>
-
-          {/* 尾水处理 */}
-          <View style={formStyles.section}>
-            <Text style={formStyles.sectionTitle}>尾水处理</Text>
-            {formFields.slice(17).map((field) => (
-              <View key={field.name}>
-                {renderFormField(
-                  field,
-                  formData[field.name as keyof typeof formData],
-                  handleChange,
-                  errors[field.name],
-                  !isEditing
-                )}
-              </View>
-            ))}
-            {/* 尾水处理图片上传 */}
-            <View style={formStyles.formGroup}>
-              <Text style={{ fontSize: 14, color: 'rgba(108,117,125,1.00)', marginBottom: 4 }}>尾水处理图片</Text>
-              <OssUpload
-                onUploadComplete={handleTailWaterImagesUpload}
-                onFileRemove={handleTailWaterImageRemove}
-                onUploading={setUploading}
-                maxFiles={5}
-                uploadType="image"
-                previewType="picture"
-                disabled={!isEditing}
-                initialFiles={formData.tail_water_images || []}
-                loading={loading}
-              />
-            </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>负责人</Text>
+            <Text style={styles.infoValue}>{formData.responsible_person}</Text>
           </View>
-
-          {/* 安全信息 */}
-          <View style={formStyles.section}>
-            <Text style={formStyles.sectionTitle}>安全信息</Text>
-            {/* 安全信息文件上传 */}
-            <View style={formStyles.formGroup}>
-              <Text style={{ fontSize: 14, color: 'rgba(108,117,125,1.00)', marginBottom: 4 }}>安全信息文件</Text>
-              <OssUpload
-                onUploadComplete={handleSafetyInfoUpload}
-                onFileRemove={handleSafetyInfoRemove}
-                onUploading={setUploading}
-                maxFiles={5}
-                uploadType="file"
-                previewType="list"
-                disabled={!isEditing}
-                initialFiles={formData.safety_info || []}
-                loading={loading}
-              />
-            </View>
-          </View>
-
-          {/* 全局错误提示 */}
-          {errors.global && (
-            <View style={formStyles.errorContainer}>
-              <Text style={formStyles.errorText}>{errors.global}</Text>
-            </View>
-          )}
-
-          {/* 成功提示 */}
-          {success && (
-            <View style={formStyles.successContainer}>
-              <Text style={formStyles.successText}>{success}</Text>
-            </View>
-          )}
-
-          {/* 操作按钮 */}
-          <View style={formStyles.buttonContainer}>
-            {!isEditing ? (
-              <>
-                <TouchableOpacity
-                  style={formStyles.submitButton}
-                  onPress={() => setIsEditing(true)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>编辑</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={formStyles.backButton}
-                  onPress={() => router.back()}
-                  activeOpacity={0.7}
-                >
-                  <Text style={{ color: '#1976d2', fontWeight: '600', fontSize: 16 }}>返回</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <TouchableOpacity
-                  style={[formStyles.submitButton, (loading || uploading) && { opacity: 0.6 }]}
-                  onPress={handleSubmit}
-                  disabled={loading || uploading}
-                  activeOpacity={0.7}
-                >
-                  <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>{loading ? "保存中..." : uploading ? "上传中..." : "保存"}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={formStyles.backButton}
-                  onPress={() => {
-                    setIsEditing(false);
-                    fetchData(); // 重置数据
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={{ color: '#1976d2', fontWeight: '600', fontSize: 16 }}>取消</Text>
-                </TouchableOpacity>
-              </>
-            )}
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>联系电话</Text>
+            <Text style={styles.infoValue}>{formData.contact_phone}</Text>
           </View>
         </View>
+
+        {/* 养殖信息 */}
+        <View style={styles.formContainer}>
+          <Text style={styles.sectionTitle}>养殖信息</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>池塘口数</Text>
+            <Text style={styles.infoValue}>{formData.pond_count}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>养殖水面面积</Text>
+            <Text style={styles.infoValue}>{formData.water_area_acre} 亩</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>养殖占地面积</Text>
+            <Text style={styles.infoValue}>{formData.farm_area_acre} 亩</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>其他养殖水面面积</Text>
+            <Text style={styles.infoValue}>{formData.other_water_area_sqm} 平方米</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>其他养殖占地面积</Text>
+            <Text style={styles.infoValue}>{formData.other_farm_area_acre} 亩</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>平均水深</Text>
+            <Text style={styles.infoValue}>{formData.avg_water_depth} 米</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>主养品种</Text>
+            <Text style={styles.infoValue}>{formData.main_species}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>养殖模式</Text>
+            <Text style={styles.infoValue}>{formData.farm_mode}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>生产运行情况</Text>
+            <Text style={styles.infoValue}>{formData.operation_status}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>总产量</Text>
+            <Text style={styles.infoValue}>{formData.output} 吨</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>年总产值</Text>
+            <Text style={styles.infoValue}>{formData.output_value} 万元</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>年总投入</Text>
+            <Text style={styles.infoValue}>{formData.total_investment} 万元</Text>
+          </View>
+          <View style={styles.infoRowHorizontal}>
+            <Text style={styles.infoLabelHorizontal}>养殖情况图片</Text>
+            <View style={styles.imageGrid}>
+              {formData.farm_images && formData.farm_images.length > 0 ? (
+                formData.farm_images.map((image, index) => (
+                  <View key={index} style={styles.imageItem}>
+                    <Image 
+                      source={{ uri: image.url }} 
+                      style={styles.image}
+                      resizeMode="cover"
+                    />
+                  </View>
+                ))
+              ) : (
+                <View style={styles.imageItemEmpty}>
+                  <NoData text="暂无数据" style={{ backgroundColor: 'transparent' }} />
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* 尾水处理 */}
+        <View style={styles.formContainer}>
+          <Text style={styles.sectionTitle}>尾水处理</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>有无尾水处理设施</Text>
+            <Text style={styles.infoValue}>{formData.has_treatment_facility ? '有' : '无'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>尾水处理方式</Text>
+            <Text style={styles.infoValue}>{formData.treatment_method}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>尾水处理设施面积</Text>
+            <Text style={styles.infoValue}>{formData.treatment_facility_area} 亩</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>已完成尾水治理排放量</Text>
+            <Text style={styles.infoValue}>{formData.treated_discharge_volume} 吨</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>养殖尾水最终去向</Text>
+            <Text style={styles.infoValue}>{formData.final_destination}</Text>
+          </View>
+          <View style={styles.infoRowHorizontal}>
+            <Text style={styles.infoLabelHorizontal}>尾水处理图片</Text>
+            <View style={styles.imageGrid}>
+              {formData.tail_water_images && formData.tail_water_images.length > 0 ? (
+                formData.tail_water_images.map((image, index) => (
+                  <View key={index} style={styles.imageItem}>
+                    <Image 
+                      source={{ uri: image.url }} 
+                      style={styles.image}
+                      resizeMode="cover"
+                    />
+                  </View>
+                ))
+              ) : (
+                <View style={styles.imageItemEmpty}>
+                  <NoData text="暂无数据" style={{ backgroundColor: 'transparent' }} />
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* 安全信息 */}
+        <View style={styles.formContainer}>
+          <Text style={styles.sectionTitle}>安全信息</Text>
+          <View style={styles.infoRowHorizontal}>
+            <Text style={styles.infoLabelHorizontal}>安全信息文件</Text>
+            <View style={styles.fileList}>
+              {formData.safety_info && formData.safety_info.length > 0 ? (
+                formData.safety_info.map((file, index) => (
+                  <View key={index} style={styles.fileItem}>
+                    <View style={styles.fileInfo}>
+                      <Text style={styles.fileName} numberOfLines={1} ellipsizeMode="middle">{file.name}</Text>
+                      <Text style={styles.fileSize}>{(file as any).size ? `${((file as any).size / 1024 / 1024).toFixed(2)} MB` : '未知大小'}</Text>
+                    </View>
+                    <View style={styles.fileActions}>
+                      <TouchableOpacity style={styles.actionButton}>
+                        <Text style={styles.downloadIcon}>⬇️</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.actionButton}>
+                        <Text style={styles.shareIcon}>🔗</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.fileListEmpty}>
+                  <NoData text="暂无数据" style={{ backgroundColor: 'transparent' }} />
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* 全局错误提示 */}
+        {errors.global && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errors.global}</Text>
+          </View>
+        )}
+
+        {/* 成功提示 */}
+        {success && (
+          <View style={styles.successContainer}>
+            <Text style={styles.successText}>{success}</Text>
+          </View>
+        )}
       </ScrollView>
+
+      {/* 底部操作按钮 */}
+      <View style={styles.bottomActions}>
+        <TouchableOpacity
+          style={[styles.editButton, { backgroundColor: theme.colors.primary }]}
+          onPress={() => router.push(`/edit?id=${id}`)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.editButtonText}>编辑</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => {
+            // 实现删除逻辑
+            console.log('Delete farm:', id);
+          }}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.deleteButtonText}>删除</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }

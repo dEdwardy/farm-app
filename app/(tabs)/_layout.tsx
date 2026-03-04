@@ -12,38 +12,37 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[(colorScheme ?? 'light') as 'light' | 'dark'].tint,
+        tabBarActiveTintColor: Colors[(colorScheme ?? 'light') as 'light' | 'dark'].tabIconSelected,
+        tabBarInactiveTintColor: Colors[(colorScheme ?? 'light') as 'light' | 'dark'].tabIconDefault,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          backgroundColor: Colors[(colorScheme ?? 'light') as 'light' | 'dark'].background,
+          borderTopColor: Colors[(colorScheme ?? 'light') as 'light' | 'dark'].background,
+          height: 56,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarShowLabel: false,
+        tabBarIconStyle: {
+          marginBottom: 0,
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: '首页',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="gear" color={color} />,
+          title: '设置',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="gear" color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="demo"
-        options={{
-          title: 'Demo',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="network"
-        options={{
-          title: '网络日志',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="antenna.radiowaves.left.and.right" color={color} />,
-        }}
-      />
+
     </Tabs>
   );
 }

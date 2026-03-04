@@ -466,51 +466,53 @@ export function UploadComponent({
           )}
 
           {/* 仅在上传类型为文件时展示已选择文件 */}
-          {uploadType === 'file' && selectedFiles.length > 0 && (
+          {uploadType === 'file' && (
             <View style={styles.container}>
               {/* 仅在非disabled状态下展示文案 */}
               {!disabled && (
                 <Text style={[commonStyles.subtitle, { marginBottom: theme.spacing.sm, fontWeight: '500' }]}>已选择 {selectedFiles.length} 个文件</Text>
               )}
-              <ScrollView style={[styles.fileList, { borderRadius: theme.borderRadius.md, borderWidth: 1, borderColor: theme.colors.border }]}>
-                {selectedFiles.map((file) => (
-                  <TouchableOpacity
-                    key={file.id}
-                    style={[styles.fileItem, file.status === 'error' ? { backgroundColor: 'rgba(220, 53, 69, 0.05)' } : {}]}
-                    activeOpacity={0.7}
-                  >
-                    {getFileIcon(file.type)}
-                    <View style={styles.fileInfo}>
-                      <Text style={[commonStyles.bodyText, { fontWeight: '500' }]} numberOfLines={1}>{file.name}</Text>
-                      <View style={styles.fileMeta}>
-                        <Text style={[commonStyles.subtitle, { fontSize: 12 }]}>{Math.round(file.size / 1024)} KB</Text>
-                        {file.status === 'uploading' && file.progress !== undefined && (
-                          <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.primary, fontSize: 12 }]}>上传中 {file.progress}%</Text>
-                        )}
-                        {file.status === 'success' && (
-                          <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.success, fontWeight: '500', fontSize: 12 }]}>上传成功</Text>
-                        )}
-                        {file.status === 'error' && (
-                          <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.error, fontWeight: '500', fontSize: 12 }]}>上传失败</Text>
+              {selectedFiles.length > 0 && (
+                <ScrollView style={[styles.fileList, { borderRadius: theme.borderRadius.md, borderWidth: 1, borderColor: theme.colors.border }]}>
+                  {selectedFiles.map((file) => (
+                    <TouchableOpacity
+                      key={file.id}
+                      style={[styles.fileItem, file.status === 'error' ? { backgroundColor: 'rgba(220, 53, 69, 0.05)' } : {}]}
+                      activeOpacity={0.7}
+                    >
+                      {getFileIcon(file.type)}
+                      <View style={styles.fileInfo}>
+                        <Text style={[commonStyles.bodyText, { fontWeight: '500' }]} numberOfLines={1}>{file.name}</Text>
+                        <View style={styles.fileMeta}>
+                          <Text style={[commonStyles.subtitle, { fontSize: 12 }]}>{Math.round(file.size / 1024)} KB</Text>
+                          {file.status === 'uploading' && file.progress !== undefined && (
+                            <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.primary, fontSize: 12 }]}>上传中 {file.progress}%</Text>
+                          )}
+                          {file.status === 'success' && (
+                            <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.success, fontWeight: '500', fontSize: 12 }]}>上传成功</Text>
+                          )}
+                          {file.status === 'error' && (
+                            <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.error, fontWeight: '500', fontSize: 12 }]}>上传失败</Text>
+                          )}
+                        </View>
+                      </View>
+                      <View style={styles.statusContainer}>
+                        {getStatusIcon(file.status)}
+                        {!disabled && (
+                          <TouchableOpacity
+                            onPress={() => removeFile(file.id)}
+                            style={[styles.removeButton, { padding: theme.spacing.sm }]}
+                            disabled={disabled}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={styles.removeIcon}>✕</Text>
+                          </TouchableOpacity>
                         )}
                       </View>
-                    </View>
-                    <View style={styles.statusContainer}>
-                      {getStatusIcon(file.status)}
-                      {!disabled && (
-                        <TouchableOpacity
-                          onPress={() => removeFile(file.id)}
-                          style={[styles.removeButton, { padding: theme.spacing.sm }]}
-                          disabled={disabled}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={styles.removeIcon}>✕</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
             </View>
           )}
 

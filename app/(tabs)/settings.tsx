@@ -5,9 +5,12 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { authService } from '@/services/authService';
+import { greenTheme } from '@/styles/themes';
 
 const UINFO_KEY = 'user_info';
 
+// 使用主题颜色
+const theme = greenTheme;
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -30,7 +33,7 @@ export default function SettingsScreen() {
         const userData = JSON.parse(userJson);
         setUser({
           ...userData,
-          username:userData.email
+          username: userData.email
         });
       } else {
         // 如果本地存储中没有用户信息，使用默认值
@@ -59,7 +62,7 @@ export default function SettingsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <Text>加载中...</Text>
+          <Text style={styles.loadingText}>加载中...</Text>
         </View>
       </SafeAreaView>
     );
@@ -69,7 +72,7 @@ export default function SettingsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>设置</Text>
-        
+
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             {user?.avatar ? (
@@ -82,7 +85,7 @@ export default function SettingsScreen() {
               </View>
             )}
           </View>
-          
+
           <Text style={styles.username}>
             {user?.username || '用户'}
           </Text>
@@ -90,11 +93,11 @@ export default function SettingsScreen() {
 
         <View style={styles.actionCard}>
           <TouchableOpacity
-            style={[styles.logoutButton, { borderWidth: 1, borderColor: '#1976d2', borderRadius: 8, paddingVertical: 12, alignItems: 'center' }]}
+            style={styles.logoutButton}
             onPress={handleLogout}
             activeOpacity={0.7}
           >
-            <Text style={{ color: '#1976d2', fontWeight: '600', fontSize: 16 }}>退出登录</Text>
+            <Text style={styles.logoutButtonText}>退出登录</Text>
           </TouchableOpacity>
         </View>
 
@@ -111,36 +114,39 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    color: theme.colors.text.secondary,
+    fontSize: theme.fontSize.md,
+  },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingHorizontal: theme.layout.screenPadding,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.lg,
   },
   title: {
-    marginBottom: 24,
+    fontSize: theme.fontSize.xl,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.lg,
   },
   profileCard: {
     alignItems: 'center',
-    padding: 24,
-    backgroundColor: 'rgba(255,255,255,0.96)',
-    borderRadius: 12,
-    marginBottom: 24,
-    // 轻微阴影，兼容 iOS/Android
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.lg,
+    ...theme.shadow.md,
   },
   avatarContainer: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
   },
   avatar: {
     width: 80,
@@ -151,41 +157,48 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#e5f2ff',
+    backgroundColor: theme.colors.primary + '20', // 20% 透明度
     alignItems: 'center',
     justifyContent: 'center',
   },
   defaultAvatarText: {
     fontSize: 32,
     fontWeight: '600',
-    color: '#007aff',
+    color: theme.colors.primary,
   },
   username: {
-    fontSize: 18,
+    fontSize: theme.fontSize.lg,
     fontWeight: '600',
+    color: theme.colors.text.primary,
   },
   actionCard: {
-    padding: 24,
-    backgroundColor: 'rgba(255,255,255,0.96)',
-    borderRadius: 12,
-    // 轻微阴影，兼容 iOS/Android
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadow.md,
   },
   logoutButton: {
     width: '100%',
-  } as any,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.md,
+    paddingVertical: theme.spacing.md,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    color: theme.colors.primary,
+    fontWeight: '600',
+    fontSize: theme.fontSize.md,
+  },
   errorContainer: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#ffebee',
-    borderRadius: 8,
+    marginTop: theme.spacing.md,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.error + '15', // 15% 透明度
+    borderRadius: theme.borderRadius.md,
   },
   errorText: {
-    color: '#c62828',
+    color: theme.colors.error,
     textAlign: 'center',
+    fontSize: theme.fontSize.sm,
   },
 });

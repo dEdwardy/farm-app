@@ -1,0 +1,118 @@
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
+
+import { FarmRow } from '@/services/dataService';
+import { indexStyles } from '@/styles/indexStyles';
+
+interface FarmCardProps {
+  farm: FarmRow;
+  searchQuery: string;
+  onPress: (farm: FarmRow) => void;
+}
+
+// 高亮显示搜索关键词
+const HighlightText: React.FC<{ text: string; keyword: string }> = React.memo(({ text, keyword }) => {
+  if (!keyword || !text) return <>{text}</>;
+
+  const parts = text.split(new RegExp(`(${keyword})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (part.toLowerCase() === keyword.toLowerCase()) {
+          return (
+            <Text key={index} style={indexStyles.highlight}>
+              {part}
+            </Text>
+          );
+        }
+        return <Text key={index}>{part}</Text>;
+      })}
+    </>
+  );
+});
+
+HighlightText.displayName = 'HighlightText';
+
+export const FarmCard: React.FC<FarmCardProps> = React.memo(({ farm, searchQuery, onPress }) => {
+  const handlePress = React.useCallback(() => {
+    onPress(farm);
+  }, [farm, onPress]);
+
+  // 格式化电话号码（隐私保护）
+  const formatPhone = React.useCallback((phone?: string) => {
+    if (!phone) return '-';
+    return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+  }, []);
+
+  const infoItems = React.useMemo(() => [
+    { label: '负责人', value: farm.responsible_person || '-' },
+    { label: '电话', value: formatPhone(farm.contact_phone) },
+    { label: '池塘口数', value: farm.pond_count ? `${farm.pond_count}口` : '-' },
+    { label: '水面面积', value: farm.water_area_acre ? `${farm.water_area_acre}亩` : '-' },
+    { label: '主养品种', value: farm.main_species || '-' },
+    { label: '养殖模式', value: farm.farm_mode || '-' },
+  ], [farm, formatPhone]);
+
+  return (
+    <TouchableOpacity
+      style={indexStyles.farmCard}
+      onPress={handlePress}
+      activeOpacity={0.9}
+    >
+      {/* 卡片头部 - 名称和类型 */}
+      <View style={indexStyles.cardHeader}>
+        <Text style={indexStyles.farmName} numberOfLines={1}>
+          <HighlightText text={farm.farm_name} keyword={searchQuery} />
+        </Text>
+        <View style={indexStyles.farmTypeBadge}>
+          <Text style={indexStyles.farmTypeBadgeText}>
+            {farm.farm_type || '水产养殖'}
+          </Text>
+        </View>
+      </View>
+
+      {/* 地址 */}
+      <View style={indexStyles.farmAddress}>
+        <Text style={indexStyles.addressIcon}>📍</Text>
+        <Text style={indexStyles.farmAddressText} numberOfLines={1}>
+          <HighlightText text={farm.address} keyword={searchQuery} />
+        </Text>
+      </View>
+
+      {/* 分隔线 */}
+      <View style={indexStyles.divider} />
+
+      {/* 信息网格 - 两列布局 */}
+      <View style={indexStyles.infoGrid}>
+        {infoItems.map((item, index) => (
+          <View key={index} style={indexStyles.infoGridItem}>
+            <View style={indexStyles.infoGridContent}>
+              <Text style={indexStyles.infoGridLabel}>{item.label}</Text>
+              <Text style={indexStyles.infoGridValue} numberOfLines={1}>
+                {item.value}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* 底部状态栏 */}
+      <View style={indexStyles.cardFooter}>
+        <View style={[
+          indexStyles.statusBadge,
+          farm.operation_status === '在养' ? indexStyles.statusBadgeActive : indexStyles.statusBadgeInactive
+        ]}>
+          <Text style={[
+            indexStyles.statusBadgeText,
+            farm.operation_status === '在养' ? indexStyles.statusBadgeTextActive : indexStyles.statusBadgeTextInactive
+          ]}>
+            {farm.operation_status || '状态未知'}
+          </Text>
+        </View>
+        <Text style={indexStyles.arrowIcon}>›</Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
+FarmCard.displayName = 'FarmCard';

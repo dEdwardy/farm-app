@@ -1,18 +1,7 @@
 import { supabase, supabaseInitError } from '@/lib/supabase';
+import { FarmFile, FarmRow, PaginatedResponse, PaginationParams } from '@/types/farm';
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  totalCount: number;
-  error?: string;
-}
-
-export interface PaginationParams {
-  page: number;
-  pageSize: number;
-  searchQuery?: string;
-}
-
-export type FarmRow = Record<string, any>;
+export type { FarmFile, FarmRow, PaginatedResponse, PaginationParams };
 
 export const dataService = {
   async getFarms(params: PaginationParams): Promise<PaginatedResponse<FarmRow>> {

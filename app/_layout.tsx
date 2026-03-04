@@ -1,21 +1,14 @@
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { supabase } from '@/lib/supabase';
 import { authService } from '@/services/authService';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { startNetworkLogging } from 'react-native-network-logger';
 import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
-// 启动网络日志记录
-startNetworkLogging();
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -75,15 +68,72 @@ export default function RootLayout() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack initialRouteName="login">
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </View>
+    <ThemeProvider>
+      <View style={{ flex: 1 }}>
+        <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack initialRouteName="login">
+            <Stack.Screen 
+              name="login" 
+              options={{ 
+                headerShown: false 
+              }} 
+            />
+            <Stack.Screen 
+              name="(tabs)" 
+              options={{ 
+                headerShown: false 
+              }} 
+            />
+            <Stack.Screen 
+              name="add" 
+              options={{ 
+                title: '新增养殖场',
+                headerStyle: {
+                  backgroundColor: '#4CAF50',
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: '700',
+                  fontSize: 18,
+                },
+                headerBackTitle: '',
+              }} 
+            />
+            <Stack.Screen 
+              name="edit" 
+              options={{ 
+                title: '编辑养殖场',
+                headerStyle: {
+                  backgroundColor: '#4CAF50',
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: '700',
+                  fontSize: 18,
+                },
+                headerBackTitle: '',
+              }} 
+            />
+            <Stack.Screen 
+              name="detail" 
+              options={{ 
+                title: '养殖场详情',
+                headerStyle: {
+                  backgroundColor: '#4CAF50',
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: '700',
+                  fontSize: 18,
+                },
+                headerBackTitle: '',
+              }} 
+            />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </NavigationThemeProvider>
+      </View>
+    </ThemeProvider>
   );
 }

@@ -1,19 +1,24 @@
 import { Input } from '@rneui/base';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppLogo } from '@/components/AppLogo';
 import { authService } from '@/services/authService';
+import { useTheme } from '../contexts/ThemeContext';
 
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [autoChecking, setAutoChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rememberPassword, setRememberPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -117,13 +122,15 @@ export default function LoginScreen() {
     }
   };
 
+  const currentStyles = styles(theme);
+
   // 自动检查登录状态时显示全屏 loading
   if (autoChecking) {
     return (
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.centerContainer}>
+        <View style={currentStyles.centerContainer}>
           <TouchableOpacity
-            style={[styles.loginButton, { opacity: 0.6 }]}
+            style={[currentStyles.loginButton, { opacity: 0.6 }]}
             disabled
             activeOpacity={1}
           >
@@ -138,55 +145,73 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
-        <View style={styles.centerContainer}>
-          <View style={styles.formContainer}>
-            {/* 预留 Logo 区域 */}
-            <View style={styles.logoContainer}>
-              <View style={styles.logoCircle}>
-                <Text style={styles.logoText}>A</Text>
-              </View>
-              <Text style={styles.heading}>欢迎回来</Text>
-              <Text style={styles.subheading}>请输入邮箱和密码登录</Text>
+        <View style={currentStyles.centerContainer}>
+          <View style={currentStyles.formContainer}>
+            {/* Logo 区域 */}
+            <View style={currentStyles.logoContainer}>
+              <AppLogo size={100} style={currentStyles.logoIcon} />
+              <Text style={currentStyles.logoText}>渔场管家</Text>
+              <Text style={currentStyles.logoSubtext}>智能水产养殖管理专家</Text>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>邮箱</Text>
+            <View style={currentStyles.formGroup}>
+              <Text style={currentStyles.label}>用户名</Text>
               <Input
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"
-                placeholder="请输入邮箱"
-                containerStyle={styles.inputBox}
+                placeholder="请输入用户名"
+                containerStyle={currentStyles.inputBox}
+                inputContainerStyle={currentStyles.inputInner}
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>密码</Text>
-              <Input
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                placeholder="请输入密码"
-                containerStyle={styles.inputBox}
+            <View style={currentStyles.formGroup}>
+              <Text style={currentStyles.label}>密码</Text>
+              <View style={currentStyles.passwordContainer}>
+                <Input
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  placeholder="请输入密码"
+                  containerStyle={currentStyles.inputBox}
+                  inputContainerStyle={currentStyles.inputInner}
+                />
+                <TouchableOpacity 
+                  style={currentStyles.togglePassword} 
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Text style={currentStyles.togglePasswordIcon}>{showPassword ? '👁️‍🗨️' : '👁️'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={currentStyles.rememberContainer}>
+              <Switch
+                value={rememberPassword}
+                onValueChange={setRememberPassword}
+                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                thumbColor={rememberPassword ? '#FFFFFF' : '#F4F3F4'}
               />
+              <Text style={currentStyles.rememberText}>记住密码</Text>
             </View>
 
             {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={currentStyles.errorContainer}>
+                <Text style={currentStyles.errorText}>{error}</Text>
               </View>
             )}
 
             <TouchableOpacity
-              style={[styles.loginButton, loading && { opacity: 0.6 }]}
+              style={[currentStyles.loginButton, loading && { opacity: 0.6 }]}
               onPress={handleLogin}
               disabled={loading}
               activeOpacity={0.7}
@@ -197,17 +222,21 @@ export default function LoginScreen() {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.loginButton, { marginTop: 12, backgroundColor: 'transparent', borderWidth: 1, borderColor: '#1976d2' }]}
+            {/* <TouchableOpacity
+              style={[currentStyles.loginButton, { marginTop: 12, backgroundColor: 'transparent', borderWidth: 1, borderColor: theme.colors.primary }]}
               onPress={handleMagicLinkLogin}
               disabled={loading}
               activeOpacity={0.7}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                {loading && <ActivityIndicator size="small" color="#1976d2" style={{ marginRight: 8 }} />}
-                <Text style={{ color: '#1976d2', fontWeight: '600', fontSize: 16 }}>{loading ? "发送登录链接..." : "使用邮箱链接登录"}</Text>
+                {loading && <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginRight: 8 }} />}
+                <Text style={{ color: theme.colors.primary, fontWeight: '600', fontSize: 16 }}>{loading ? "发送登录链接..." : "使用邮箱链接登录"}</Text>
               </View>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+
+            <View style={currentStyles.registerLink}>
+              <Text style={currentStyles.registerText}>还没有账号？ <Text style={currentStyles.registerButton}>注册</Text>（暂时关闭）</Text>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -215,79 +244,117 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   centerContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 20,
+    backgroundColor: theme.colors.background,
   },
   formContainer: {
     width: '100%',
-    maxWidth: 400,
-    padding: 24,
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4,
+    maxWidth: 420,
+    padding: 32,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.xl,
+    ...theme.shadow.lg,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 30,
   },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#e3f2fd',
+  logoIcon: {
+    width: 80,
+    height: 80,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 15,
+  },
+  logoEmoji: {
+    fontSize: 40,
   },
   logoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1976d2',
-  },
-  heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
     marginBottom: 4,
   },
-  subheading: {
+  logoSubtext: {
     fontSize: 14,
-    color: '#6c757d',
-    textAlign: 'center',
+    color: theme.colors.text.secondary,
   },
-  inputContainer: {
-    marginBottom: 16,
+  formGroup: {
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    color: '#6c757d',
-    marginBottom: 4,
+    fontWeight: '500',
+    color: theme.colors.text.primary,
+    marginBottom: 8,
   },
   inputBox: {
     width: '100%',
+    padding: 0,
+  },
+  inputInner: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  passwordContainer: {
+    position: 'relative',
+  },
+  togglePassword: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    transform: [{ translateY: -15 }],
+  },
+  togglePasswordIcon: {
+    fontSize: 20,
+  },
+  rememberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  rememberText: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    marginLeft: 8,
   },
   errorContainer: {
-    marginBottom: 12,
+    marginBottom: 15,
+    alignItems: 'center',
   },
   errorText: {
-    fontSize: 12,
-    color: '#dc3545',
+    fontSize: 14,
+    color: theme.colors.error,
   },
   loginButton: {
-    marginTop: 8,
-    paddingVertical: 12,
-    backgroundColor: '#1976d2',
-  } as any,
+    width: '100%',
+    paddingVertical: 14,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  registerLink: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  registerText: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+  },
+  registerButton: {
+    color: theme.colors.primary,
+    fontWeight: '500',
+  },
 });
 

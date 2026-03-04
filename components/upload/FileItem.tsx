@@ -73,7 +73,7 @@ export function FileItemComponent({ file, disabled, onRemove }: FileItemProps) {
     >
       {getFileIcon(file.type)}
       <View style={styles.fileInfo}>
-        <Text style={[commonStyles.bodyText, { fontWeight: '500' }]} numberOfLines={1}>{file.name}</Text>
+        <Text style={[commonStyles.bodyText, { fontWeight: '500' }]} numberOfLines={1} ellipsizeMode="middle">{file.name}</Text>
         <View style={styles.fileMeta}>
           <Text style={[commonStyles.subtitle, { fontSize: 12 }]}>{Math.round(file.size / 1024)} KB</Text>
           {file.status === 'uploading' && file.progress !== undefined && (
