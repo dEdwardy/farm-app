@@ -1,7 +1,6 @@
-import { Input } from '@rneui/base';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppLogo } from '@/components/AppLogo';
@@ -152,30 +151,35 @@ export default function LoginScreen() {
               <Text style={currentStyles.logoSubtext}>智能水产养殖管理专家</Text>
             </View>
 
+            {/* TODO: 后续优化 - 解决Android密码管理器自动填充导致的黄色背景问题 */}
             <View style={currentStyles.formGroup}>
-              <Text style={currentStyles.label}>用户名</Text>
-              <Input
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                placeholder="请输入用户名"
-                containerStyle={currentStyles.inputBox}
-                inputContainerStyle={currentStyles.inputInner}
-              />
+              <Text style={currentStyles.label}>邮箱</Text>
+              <View style={currentStyles.inputContainer}>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  placeholder="请输入邮箱"
+                  placeholderTextColor={theme.colors.text.secondary}
+                  style={currentStyles.input}
+                  editable={true}
+                />
+              </View>
             </View>
 
             <View style={currentStyles.formGroup}>
               <Text style={currentStyles.label}>密码</Text>
-              <View style={currentStyles.passwordContainer}>
-                <Input
+              <View style={currentStyles.inputContainer}>
+                <TextInput
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                   placeholder="请输入密码"
-                  containerStyle={currentStyles.inputBox}
-                  inputContainerStyle={currentStyles.inputInner}
+                  placeholderTextColor={theme.colors.text.secondary}
+                  style={currentStyles.input}
+                  editable={true}
                 />
                 <TouchableOpacity 
                   style={currentStyles.togglePassword} 
@@ -265,9 +269,6 @@ const styles = (theme: any) => StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 15,
   },
-  logoEmoji: {
-    fontSize: 40,
-  },
   logoText: {
     fontSize: 20,
     fontWeight: '600',
@@ -287,25 +288,24 @@ const styles = (theme: any) => StyleSheet.create({
     color: theme.colors.text.primary,
     marginBottom: 8,
   },
-  inputBox: {
-    width: '100%',
-    padding: 0,
-  },
-  inputInner: {
-    borderWidth: 1,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.md,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: 'transparent',
   },
-  passwordContainer: {
-    position: 'relative',
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    backgroundColor: 'transparent',
+    paddingVertical: 8,
+    paddingHorizontal: 0,
   },
   togglePassword: {
-    position: 'absolute',
-    right: 16,
-    top: '50%',
-    transform: [{ translateY: -15 }],
+    padding: 8,
+    marginLeft: 8,
   },
   togglePasswordIcon: {
     fontSize: 20,
@@ -349,4 +349,3 @@ const styles = (theme: any) => StyleSheet.create({
     fontWeight: '500',
   },
 });
-
