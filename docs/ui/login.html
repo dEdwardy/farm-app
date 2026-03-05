@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>养殖场信息管理 - 登录页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #F5F5F5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            padding: 48px 32px;
+            width: 100%;
+            max-width: 420px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #4CAF50;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 15px;
+            font-size: 40px;
+            color: white;
+        }
+        
+        .logo-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+        
+        .logo-subtext {
+            font-size: 14px;
+            color: #757575;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+        
+        .input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #757575;
+        }
+        
+        .remember-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .checkbox {
+            margin-right: 8px;
+        }
+        
+        .remember-text {
+            font-size: 14px;
+            color: #666666;
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .login-button:hover {
+            background-color: #45a049;
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666666;
+        }
+        
+        .register-link a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .status-text {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #FF5722;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <div class="logo-icon">🏠</div>
+            <div class="logo-text">养殖场信息管理</div>
+            <div class="logo-subtext">专业的养殖场管理工具</div>
+        </div>
+        
+        <form>
+            <div class="form-group">
+                <label class="label">用户名</label>
+                <input type="text" class="input" placeholder="请输入用户名">
+            </div>
+            
+            <div class="form-group">
+                <label class="label">密码</label>
+                <div class="password-container">
+                    <input type="password" class="input" placeholder="请输入密码">
+                    <button type="button" class="toggle-password">👁️</button>
+                </div>
+            </div>
+            
+            <div class="remember-container">
+                <input type="checkbox" class="checkbox" id="remember">
+                <label for="remember" class="remember-text">记住密码</label>
+            </div>
+            
+            <button type="button" class="login-button">登录</button>
+            
+            <div class="register-link">
+                还没有账号？ <a href="#">注册</a>（暂时关闭）
+            </div>
+            
+            <div class="status-text">
+                <!-- 登录状态提示 -->
+            </div>
+        </form>
+    </div>
+</body>
+</html>

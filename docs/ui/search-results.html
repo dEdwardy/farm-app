@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>养殖场搜索结果</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+    }
+    
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background-color: #f5f8fa;
+      color: #333333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .app-container {
+      width: 375px;
+      height: 812px;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      background: #ffffff;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .fixed-section {
+      flex-shrink: 0;
+    }
+    
+    .content-flex {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 15px;
+    }
+    
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    /* 顶部导航 */
+    .app-header {
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: white;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .back-button {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.2);
+      margin-right: 15px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .back-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      flex: 1;
+    }
+    
+    /* 搜索区域 */
+    .search-container {
+      padding: 16px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .search-box {
+      display: flex;
+      border: 1px solid #e0e0e0;
+      border-radius: 24px;
+      overflow: hidden;
+      height: 48px;
+      background: white;
+    }
+    
+    .search-input {
+      flex: 1;
+      border: none;
+      padding: 8px 16px;
+      font-size: 16px;
+      outline: none;
+      min-height: 44px;
+    }
+    
+    .search-button {
+      background: #4CAF50;
+      border: none;
+      width: 60px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      min-height: 44px;
+      transition: background 0.2s ease;
+    }
+    
+    .search-button:hover {
+      background: #45a049;
+    }
+    
+    /* 结果统计 */
+    .results-counter {
+      padding: 16px 16px 8px;
+      font-size: 14px;
+      color: #666666;
+    }
+    
+    /* 农场卡片列表 */
+    .card-list {
+      padding: 0 16px;
+    }
+    
+    .farm-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 16px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      border-left: 4px solid #4CAF50;
+      animation: fadeIn 0.3s ease-out;
+      transform: translateY(0);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .farm-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .farm-card:active {
+      transform: scale(0.98);
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* 卡片标题区域 */
+    .farm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .farm-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #333;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      margin-right: 8px;
+    }
+    
+    .farm-type {
+      background: #E8F5E9;
+      color: #2E7D32;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    
+    /* 地址信息 */
+    .farm-location {
+      font-size: 13px;
+      color: #757575;
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .highlight {
+      background-color: #E8F5E9;
+      color: #2E7D32;
+      font-weight: 500;
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+    
+    /* 分隔线 */
+    .divider {
+      height: 1px;
+      background: #eeeeee;
+      margin: 12px 0;
+    }
+    
+    /* 信息网格 */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .info-item {
+      font-size: 13px;
+    }
+    
+    .info-label {
+      color: #757575;
+      margin-bottom: 4px;
+    }
+    
+    .info-value {
+      color: #333333;
+      font-weight: 500;
+    }
+    
+    /* 底部状态栏 */
+    .farm-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+    }
+    
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status-active {
+      background: #E8F5E9;
+      color: #388E3C;
+    }
+    
+    .status-inactive {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+    
+    /* 底部导航栏 */
+    .app-footer {
+      height: 80px;
+      background: #ffffff;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 10px;
+    }
+    
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 25%;
+      padding: 10px 0;
+      min-height: 44px;
+      cursor: pointer;
+    }
+    
+    .bottom-nav-item .icon {
+      font-size: 22px;
+      color: #9e9e9e;
+      margin-bottom: 2px;
+    }
+    
+    .bottom-nav-item .nav-label {
+      font-size: 10px;
+      color: #9e9e9e;
+    }
+    
+    .bottom-nav-item.active .icon,
+    .bottom-nav-item.active .nav-label {
+      color: #4CAF50;
+    }
+    
+    /* 动画延迟设置 */
+    .farm-card:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+    .farm-card:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .farm-card:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 顶部固定导航栏 -->
+    <header class="app-header fixed-section">
+      <div class="back-button">
+        <iconify-icon icon="material-symbols:arrow-back-ios" style="color: white;" width="24"></iconify-icon>
+      </div>
+      <h1 class="title">搜索结果</h1>
+    </header>
+    
+    <!-- 可滚动内容区域 -->
+    <main class="content-flex hide-scrollbar">
+      <!-- 搜索区域 -->
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="输入养殖场名称或地址..." value="北京">
+          <button type="button" class="search-button">
+            <iconify-icon icon="material-symbols:search" style="color: white;" width="24"></iconify-icon>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 搜索结果统计 -->
+      <div class="results-counter">找到 <strong style="color: #4CAF50;">3</strong> 个相关结果</div>
+      
+      <!-- 农场列表 -->
+      <div class="card-list">
+        <!-- 农场卡片 1 -->
+        <div class="farm-card">
+          <div class="farm-header">
+            <h3 class="farm-name"><span class="highlight">北京</span>绿色水产养殖场</h3>
+            <span class="farm-type">水产养殖</span>
+          </div>
+          <p class="farm-location">
+            <iconify-icon icon="material-symbols:location-on" style="color: #9e9e9e;" width="16"></iconify-icon>
+            <span><span class="highlight">北京</span>市海淀区中关村大街1号</span>
+          </p>
+          <div class="divider"></div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">负责人</div>
+              <div class="info-value">张三</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">电话</div>
+              <div class="info-value">138****8000</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">池塘口数</div>
+              <div class="info-value">15口</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">水面面积</div>
+              <div class="info-value">300亩</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">主养品种</div>
+              <div class="info-value">草鱼、鲤鱼</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">养殖模式</div>
+              <div class="info-value">生态养殖</div>
+            </div>
+          </div>
+          <div class="farm-footer">
+            <span class="status-badge status-active">在养中</span>
+            <iconify-icon icon="material-symbols:arrow-forward-ios-rounded" style="color: #9e9e9e;" width="18"></iconify-icon>
+          </div>
+        </div>
+        
+        <!-- 农场卡片 2 -->
+        <div class="farm-card">
+          <div class="farm-header">
+            <h3 class="farm-name">金鱼养殖基地</h3>
+            <span class="farm-type">观赏养殖</span>
+          </div>
+          <p class="farm-location">
+            <iconify-icon icon="material-symbols:location-on" style="color: #9e9e9e;" width="16"></iconify-icon>
+            <span><span class="highlight">北京</span>市朝阳区北辰路8号</span>
+          </p>
+          <div class="divider"></div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">负责人</div>
+              <div class="info-value">李四</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">电话</div>
+              <div class="info-value">139****9000</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">池塘口数</div>
+              <div class="info-value">8口</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">水面面积</div>
+              <div class="info-value">150亩</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">主养品种</div>
+              <div class="info-value">金鱼</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">养殖模式</div>
+              <div class="info-value">池塘养殖</div>
+            </div>
+          </div>
+          <div class="farm-footer">
+            <span class="status-badge status-active">在养中</span>
+            <iconify-icon icon="material-symbols:arrow-forward-ios-rounded" style="color: #9e9e9e;" width="18"></iconify-icon>
+          </div>
+        </div>
+        
+        <!-- 农场卡片 3 -->
+        <div class="farm-card">
+          <div class="farm-header">
+            <h3 class="farm-name"><span class="highlight">北京</span>海淀淡水鱼养殖场</h3>
+            <span class="farm-type">淡水养殖</span>
+          </div>
+          <p class="farm-location">
+            <iconify-icon icon="material-symbols:location-on" style="color: #9e9e9e;" width="16"></iconify-icon>
+            <span>海淀区上地十街</span>
+          </p>
+          <div class="divider"></div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">负责人</div>
+              <div class="info-value">王五</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">电话</div>
+              <div class="info-value">137****7000</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">池塘口数</div>
+              <div class="info-value">20口</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">水面面积</div>
+              <div class="info-value">500亩</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">主养品种</div>
+              <div class="info-value">鲤鱼</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">养殖模式</div>
+              <div class="info-value">循环水养殖</div>
+            </div>
+          </div>
+          <div class="farm-footer">
+            <span class="status-badge status-inactive">停养中</span>
+            <iconify-icon icon="material-symbols:arrow-forward-ios-rounded" style="color: #9e9e9e;" width="18"></iconify-icon>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <!-- 底部导航栏 -->
+    <footer class="app-footer fixed-section">
+      <div class="bottom-nav-item">
+        <iconify-icon icon="carbon:home" class="icon"></iconify-icon>
+        <span class="nav-label">首页</span>
+      </div>
+      <div class="bottom-nav-item active">
+        <iconify-icon icon="mdi:search" class="icon"></iconify-icon>
+        <span class="nav-label">搜索</span>
+      </div>
+      <div class="bottom-nav-item">
+        <iconify-icon icon="mdi:message-text-outline" class="icon"></iconify-icon>
+        <span class="nav-label">消息</span>
+      </div>
+      <div class="bottom-nav-item">
+        <iconify-icon icon="healthicons:ui-user-profile" class="icon"></iconify-icon>
+        <span class="nav-label">我的</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

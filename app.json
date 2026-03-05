@@ -12,6 +12,10 @@
     },
     "scheme": "farmapp",
     "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*",
+      "!docs/**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.edw4rd.farmapp",

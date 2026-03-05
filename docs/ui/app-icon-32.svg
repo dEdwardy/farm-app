@@ -1,0 +1,19 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4CAF50" />
+      <stop offset="100%" stop-color="#2196F3" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="32" height="32" rx="6" fill="white"/>
+  
+  <!-- 简化版Logo - 水滴形状 -->
+  <path d="M16,6 C22,6 26,8 26,16 C26,24 22,26 16,26 C10,26 6,24 6,16 C6,8 10,6 16,6 Z" 
+        fill="url(#iconGradient)"/>
+  
+  <!-- 简化鱼形 -->
+  <path d="M12,12 C14,10 18,10 20,12 C22,14 21,18 19,20 C17,22 13,20 12,18 C10,16 10,14 12,12 Z" 
+        fill="white" opacity="0.9"/>
+</svg>

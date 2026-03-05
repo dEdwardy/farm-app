@@ -1,0 +1,29 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4CAF50" />
+      <stop offset="50%" stop-color="#43A047" />
+      <stop offset="100%" stop-color="#2196F3" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="192" height="192" rx="32" fill="white"/>
+  
+  <!-- 主Logo - 水滴形状 -->
+  <g transform="translate(96, 96) translate(-56, -56) scale(0.9)">
+    <!-- 外轮廓 -->
+    <path d="M56,20 C76,20 92,30 92,56 C92,82 76,92 56,92 C36,92 20,82 20,56 C20,30 36,20 56,20 Z" 
+          fill="url(#iconGradient)"/>
+    
+    <!-- 内部鱼形 -->
+    <path d="M42,46 C52,36 70,36 80,46 C86,56 82,70 72,76 C62,82 46,76 42,66 C36,60 36,52 42,46 Z" 
+          fill="white" opacity="0.95"/>
+    
+    <!-- 鱼眼 -->
+    <ellipse cx="56" cy="52" rx="9" ry="7" fill="#E8F5E9"/>
+    
+    <!-- 鱼尾 -->
+    <path d="M56,60 L62,66 L50,66 Z" fill="#2E7D32"/>
+  </g>
+</svg>
