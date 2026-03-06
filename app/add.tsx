@@ -26,10 +26,10 @@ export default function AddScreen() {
     submit,
   } = useFarmForm({
     onSuccess: () => {
-      // 2秒后返回列表页
+      // 1秒后返回列表页
       setTimeout(() => {
-        router.back();
-      }, 1500);
+        router.replace('/');
+      }, 1000);
     },
   });
 

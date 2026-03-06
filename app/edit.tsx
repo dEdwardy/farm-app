@@ -1,16 +1,15 @@
-import { dataService } from '@/services/dataService';
-import { createFormStyles } from '@/styles/formStyles';
 import { useNavigation } from '@react-navigation/native';
-import { Overlay } from '@rneui/base';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { z } from 'zod';
-import { formFields, renderFormField } from '../components/FormFields';
-import { OssUpload } from '../components/OssUpload';
-import { useTheme } from '../contexts/ThemeContext';
-import { FarmFormData, farmFormSchema } from '../types/schemas';
+
+import { formFields, renderFormField } from '@/components/FormFields';
+import { OssUpload } from '@/components/OssUpload';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useFarmForm } from '@/hooks/useFarmForm';
+import { dataService } from '@/services/dataService';
+import { createFormStyles } from '@/styles/formStyles';
 
 export default function EditScreen() {
   const router = useRouter();
@@ -19,54 +18,63 @@ export default function EditScreen() {
   const id = params.id as string;
   const { theme } = useTheme();
   const styles = createFormStyles(theme);
-
-  const [formData, setFormData] = useState<FarmFormData>({
-    farm_name: '',
-    address: '',
-    longitude_latitude: '',
-    responsible_person: '',
-    contact_phone: '',
-    pond_count: '',
-    water_area_acre: '',
-    farm_area_acre: '',
-    other_water_area_sqm: '',
-    other_farm_area_acre: '',
-    avg_water_depth: '',
-    main_species: '',
-    farm_mode: '',
-    operation_status: '',
-    output: '',
-    output_value: '',
-    total_investment: '',
-    farm_images: [],
-    has_treatment_facility: false,
-    treatment_method: '',
-    treatment_facility_area: '',
-    treated_discharge_volume: '',
-    final_destination: '',
-    tail_water_images: [],
-    safety_info: [],
-  });
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [message, setMessage] = useState<string | null>(null);
-  const [messageType, setMessageType] = useState<'success' | 'error' | null>(null);
-  const [originalFiles, setOriginalFiles] = useState<any[]>([]);
 
-  const fetchData = useCallback(async () => {
+  const {
+    formData,
+    errors,
+    loading: saving,
+    handleChange,
+    handleImagesChange,
+    handleImageRemove,
+    submit,
+    setOriginalFiles,
+  } = useFarmForm({
+    onSuccess: () => {
+      // 1秒后返回列表页
+      setTimeout(() => {
+        router.replace('/');
+      }, 1000);
+    },
+  });
+
+  const fetchData = React.useCallback(async () => {
     setLoading(true);
-    setErrors({});
-
     try {
       const farmData = await dataService.getFarmById(id);
       if (farmData) {
+        const {
+          farm_name,
+          address,
+          longitude_latitude,
+          responsible_person,
+          contact_phone,
+          pond_count,
+          water_area_acre,
+          farm_area_acre,
+          other_water_area_sqm,
+          other_farm_area_acre,
+          avg_water_depth,
+          main_species,
+          farm_mode,
+          operation_status,
+          output,
+          output_value,
+          total_investment,
+          farm_images,
+          has_treatment_facility,
+          treatment_method,
+          treatment_facility_area,
+          treated_discharge_volume,
+          final_destination,
+          tail_water_images,
+          safety_info,
+        } = farmData;
+
         // 准备原始文件数据
         const files: { id: string; url: string; business_type: string; name: string; type: string }[] = [];
-        
-        // 处理养殖情况图片
-        if (Array.isArray(farmData.farm_images)) {
-          farmData.farm_images.forEach((item: any) => {
+        if (Array.isArray(farm_images)) {
+          farm_images.forEach((item: any) => {
             if (item.id) {
               files.push({
                 id: item.id,
@@ -78,10 +86,8 @@ export default function EditScreen() {
             }
           });
         }
-        
-        // 处理尾水处理图片
-        if (Array.isArray(farmData.tail_water_images)) {
-          farmData.tail_water_images.forEach((item: any) => {
+        if (Array.isArray(tail_water_images)) {
+          tail_water_images.forEach((item: any) => {
             if (item.id) {
               files.push({
                 id: item.id,
@@ -93,10 +99,8 @@ export default function EditScreen() {
             }
           });
         }
-        
-        // 处理安全信息文件
-        if (Array.isArray(farmData.safety_info)) {
-          farmData.safety_info.forEach((item: any) => {
+        if (Array.isArray(safety_info)) {
+          safety_info.forEach((item: any) => {
             if (item.id) {
               files.push({
                 id: item.id,
@@ -108,189 +112,73 @@ export default function EditScreen() {
             }
           });
         }
-        
-        // 存储原始文件数据
         setOriginalFiles(files);
-        
-        // 将获取的数据设置到formData
-        setFormData({
-          farm_name: String(farmData.farm_name ?? ''),
-          address: String(farmData.address ?? ''),
-          longitude_latitude: String(farmData.longitude_latitude ?? ''),
-          responsible_person: String(farmData.responsible_person ?? ''),
-          contact_phone: String(farmData.contact_phone ?? ''),
-          pond_count: String(farmData.pond_count ?? ''),
-          water_area_acre: String(farmData.water_area_acre ?? ''),
-          farm_area_acre: String(farmData.farm_area_acre ?? ''),
-          other_water_area_sqm: String(farmData.other_water_area_sqm ?? ''),
-          other_farm_area_acre: String(farmData.other_farm_area_acre ?? ''),
-          avg_water_depth: String(farmData.avg_water_depth ?? ''),
-          main_species: String(farmData.main_species ?? ''),
-          farm_mode: String(farmData.farm_mode ?? ''),
-          operation_status: String(farmData.operation_status ?? ''),
-          output: String(farmData.output ?? ''),
-          output_value: String(farmData.output_value ?? ''),
-          total_investment: String(farmData.total_investment ?? ''),
-          farm_images: Array.isArray(farmData.farm_images) ? farmData.farm_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
-          has_treatment_facility: Boolean(farmData.has_treatment_facility ?? false),
-          treatment_method: String(farmData.treatment_method ?? ''),
-          treatment_facility_area: String(farmData.treatment_facility_area ?? ''),
-          treated_discharge_volume: String(farmData.treated_discharge_volume ?? ''),
-          final_destination: String(farmData.final_destination ?? ''),
-          tail_water_images: Array.isArray(farmData.tail_water_images) ? farmData.tail_water_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
-          safety_info: Array.isArray(farmData.safety_info) ? farmData.safety_info.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
+
+        const processedData = {
+          farm_name: String(farm_name ?? ''),
+          address: String(address ?? ''),
+          longitude_latitude: String(longitude_latitude ?? ''),
+          responsible_person: String(responsible_person ?? ''),
+          contact_phone: String(contact_phone ?? ''),
+          pond_count: String(pond_count ?? ''),
+          water_area_acre: String(water_area_acre ?? ''),
+          farm_area_acre: String(farm_area_acre ?? ''),
+          other_water_area_sqm: String(other_water_area_sqm ?? ''),
+          other_farm_area_acre: String(other_farm_area_acre ?? ''),
+          avg_water_depth: String(avg_water_depth ?? ''),
+          main_species: String(main_species ?? ''),
+          farm_mode: String(farm_mode ?? ''),
+          operation_status: String(operation_status ?? ''),
+          output: String(output ?? ''),
+          output_value: String(output_value ?? ''),
+          total_investment: String(total_investment ?? ''),
+          farm_images: Array.isArray(farm_images) ? farm_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
+          has_treatment_facility: Boolean(has_treatment_facility ?? false),
+          treatment_method: String(treatment_method ?? ''),
+          treatment_facility_area: String(treatment_facility_area ?? ''),
+          treated_discharge_volume: String(treated_discharge_volume ?? ''),
+          final_destination: String(final_destination ?? ''),
+          tail_water_images: Array.isArray(tail_water_images) ? tail_water_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
+          safety_info: Array.isArray(safety_info) ? safety_info.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
+        };
+
+        Object.keys(processedData).forEach(key => {
+          handleChange(key, processedData[key as keyof typeof processedData]);
         });
-      } else {
-        setErrors({ global: '获取数据失败，未找到该记录' });
       }
     } catch (e) {
-      setErrors({ global: '获取数据失败，请稍后重试' });
+      console.error('获取数据失败:', e);
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, handleChange, setOriginalFiles]);
 
-  useEffect(() => {
-    fetchData();
-  }, [id, fetchData]);
-
-  // 自动隐藏消息
   React.useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => {
-        setMessage(null);
-        setMessageType(null);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
-
-  const handleChange = (key: string, value: string | boolean | any) => {
-    setFormData(prev => ({
-      ...prev,
-      [key]: value
-    }));
-    // 清除对应字段的错误
-    if (errors[key]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[key];
-        return newErrors;
-      });
-    }
-  };
-
-  // 处理养殖情况图片上传完成
-  const handleFarmImagesUpload = (files: { url: string; name: string }[]) => {
-    setFormData(prev => ({
-      ...prev,
-      farm_images: files
-    }));
-  };
-
-  // 处理养殖情况图片删除
-  const handleFarmImageRemove = (file: { url: string; name: string }, index: number) => {
-    const updatedFarmImages = [...(formData.farm_images || [])];
-    updatedFarmImages.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      farm_images: updatedFarmImages
-    }));
-  };
-
-  // 处理尾水处理图片上传完成
-  const handleTailWaterImagesUpload = (files: { url: string; name: string }[]) => {
-    setFormData(prev => ({
-      ...prev,
-      tail_water_images: files
-    }));
-  };
-
-  // 处理尾水处理图片删除
-  const handleTailWaterImageRemove = (file: { url: string; name: string }, index: number) => {
-    const updatedTailWaterImages = [...(formData.tail_water_images || [])];
-    updatedTailWaterImages.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      tail_water_images: updatedTailWaterImages
-    }));
-  };
-
-  // 处理安全信息文件上传完成
-  const handleSafetyInfoUpload = (files: { url: string; name: string }[]) => {
-    setFormData(prev => ({
-      ...prev,
-      safety_info: files
-    }));
-  };
-
-  // 处理安全信息文件删除
-  const handleSafetyInfoRemove = (file: { url: string; name: string }, index: number) => {
-    const updatedSafetyInfo = [...(formData.safety_info || [])];
-    updatedSafetyInfo.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      safety_info: updatedSafetyInfo
-    }));
-  };
+    fetchData();
+  }, [fetchData]);
 
   const handleSubmit = async () => {
-    setErrors({});
-    setLoading(true);
-
-    try {
-      // 验证表单数据
-      farmFormSchema.parse(formData);
-
-      const updatedFarm = await dataService.updateFarm(id, formData, originalFiles);
-      
-      if (updatedFarm) {
-        // 显示成功提示
-        setMessage('数据更新成功！');
-        setMessageType('success');
-        
-        // 跳转到详情页面
-        router.replace(`/detail?id=${id}`);
-      } else {
-        // 显示错误提示
-        setMessage('数据更新失败，请稍后重试');
-        setMessageType('error');
-      }
-    } catch (e: any) {
-      if (e instanceof z.ZodError) {
-        // 处理验证错误，将错误信息按字段分组
-        const fieldErrors: Record<string, string> = {};
-        e.issues.forEach((issue: any) => {
-          if (issue.path && issue.path.length > 0) {
-            const fieldName = issue.path[0];
-            fieldErrors[fieldName] = issue.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        setMessage('数据更新失败，请稍后重试');
-        setMessageType('error');
-      }
-    } finally {
-      setLoading(false);
+    const success = await submit(id);
+    if (success) {
+      // 成功后的逻辑在 onSuccess 中处理
     }
   };
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={handleSubmit}
-          disabled={loading || uploading}
+          disabled={saving || loading}
           style={{ paddingHorizontal: 16, paddingVertical: 8 }}
         >
           <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
-            {loading ? "保存中..." : uploading ? "上传中..." : "保存"}
+            {saving ? '保存中...' : '保存'}
           </Text>
         </TouchableOpacity>
       ),
     });
-  }, [navigation, loading, uploading, formData]);
+  }, [navigation, saving, loading, formData]);
 
   if (loading) {
     return (
@@ -337,14 +225,13 @@ export default function EditScreen() {
           <View style={styles.formGroup}>
             <Text style={styles.label}>养殖情况图片</Text>
             <OssUpload
-              onUploadComplete={handleFarmImagesUpload}
-              onFileRemove={handleFarmImageRemove}
-              onUploading={setUploading}
+              onUploadComplete={(files) => handleImagesChange('farm_images', files)}
+              onFileRemove={(_, index) => handleImageRemove('farm_images', index)}
               maxFiles={5}
               uploadType="image"
               previewType="picture"
               initialFiles={formData.farm_images || []}
-              loading={loading}
+              loading={saving}
             />
           </View>
         </View>
@@ -366,14 +253,13 @@ export default function EditScreen() {
           <View style={styles.formGroup}>
             <Text style={styles.label}>尾水处理图片</Text>
             <OssUpload
-              onUploadComplete={handleTailWaterImagesUpload}
-              onFileRemove={handleTailWaterImageRemove}
-              onUploading={setUploading}
+              onUploadComplete={(files) => handleImagesChange('tail_water_images', files)}
+              onFileRemove={(_, index) => handleImageRemove('tail_water_images', index)}
               maxFiles={5}
               uploadType="image"
               previewType="picture"
               initialFiles={formData.tail_water_images || []}
-              loading={loading}
+              loading={saving}
             />
           </View>
         </View>
@@ -385,37 +271,16 @@ export default function EditScreen() {
           <View style={styles.formGroup}>
             <Text style={styles.label}>安全信息文件</Text>
             <OssUpload
-              onUploadComplete={handleSafetyInfoUpload}
-              onFileRemove={handleSafetyInfoRemove}
-              onUploading={setUploading}
+              onUploadComplete={(files) => handleImagesChange('safety_info', files)}
+              onFileRemove={(_, index) => handleImageRemove('safety_info', index)}
               maxFiles={5}
               uploadType="file"
               previewType="list"
               initialFiles={formData.safety_info || []}
-              loading={loading}
+              loading={saving}
             />
           </View>
         </View>
-
-        {/* 全局错误提示 */}
-        {errors.global && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{errors.global}</Text>
-          </View>
-        )}
-
-        {/* 消息提示 */}
-        {message && (
-          <Overlay
-            isVisible={!!message}
-            onBackdropPress={() => setMessage(null)}
-            overlayStyle={[styles.overlay, messageType === 'success' ? styles.successOverlay : styles.errorOverlay]}
-          >
-            <Text style={[styles.overlayText, messageType === 'success' ? styles.successText : styles.errorText]}>
-              {message}
-            </Text>
-          </Overlay>
-        )}
       </ScrollView>
     </SafeAreaView>
   );

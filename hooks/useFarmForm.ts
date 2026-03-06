@@ -8,6 +8,7 @@ import { toast } from '@/utils/toast';
 interface UseFarmFormOptions {
   initialData?: Partial<FarmFormData>;
   onSuccess?: () => void;
+  originalFiles?: any[];
 }
 
 interface UseFarmFormReturn {
@@ -22,6 +23,7 @@ interface UseFarmFormReturn {
   validate: () => boolean;
   submit: (id?: string) => Promise<boolean>;
   resetMessage: () => void;
+  setOriginalFiles: (files: any[]) => void;
 }
 
 const defaultFormData: FarmFormData = {
@@ -53,7 +55,7 @@ const defaultFormData: FarmFormData = {
 };
 
 export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn {
-  const { initialData, onSuccess } = options;
+  const { initialData, onSuccess, originalFiles: optionsOriginalFiles } = options;
 
   const [formData, setFormData] = useState<FarmFormData>({
     ...defaultFormData,
@@ -63,6 +65,7 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<'success' | 'error' | null>(null);
+  const [originalFiles, setOriginalFiles] = useState<any[]>(optionsOriginalFiles || []);
 
   const handleChange = useCallback((key: string, value: string | boolean | any) => {
     setFormData((prev) => ({
@@ -121,6 +124,10 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
     }
   }, [formData]);
 
+  const setOriginalFilesCallback = useCallback((files: any[]) => {
+    setOriginalFiles(files);
+  }, []);
+
   const submit = useCallback(async (id?: string): Promise<boolean> => {
     if (!validate()) {
       setMessage('请检查表单填写是否正确');
@@ -134,26 +141,26 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
     try {
       let result;
       if (id) {
-        result = await dataService.updateFarm(id, formData);
+        result = await dataService.updateFarm(id, formData, originalFiles);
       } else {
         result = await dataService.addFarm(formData);
       }
 
       if (result) {
-        toast.success(id ? '更新成功' : '创建成功');
+        toast.success('保存成功，即将返回列表');
         onSuccess?.();
         return true;
       } else {
-        toast.error('操作失败，请稍后重试');
+        toast.error('保存失败');
         return false;
       }
     } catch (error) {
-      toast.error('操作失败，请稍后重试');
+      toast.error('保存失败');
       return false;
     } finally {
       setLoading(false);
     }
-  }, [formData, validate, onSuccess]);
+  }, [formData, validate, onSuccess, originalFiles]);
 
   const resetMessage = useCallback(() => {
     setMessage(null);
@@ -172,5 +179,6 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
     validate,
     submit,
     resetMessage,
+    setOriginalFiles: setOriginalFilesCallback,
   };
 }
