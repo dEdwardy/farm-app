@@ -1,11 +1,9 @@
 import { dataService } from '@/services/dataService';
 
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { ImagePreview } from '@/components/common/ImagePreview';
+import { ImageGridDisplay, ImagePreview } from '@/components/common';
 import { FileDownloader } from '@/components/upload/FileDownloader';
 import { toast } from '@/utils/toast';
-import { MaterialIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -13,32 +11,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { createFormStyles } from '../styles/formStyles';
 import { FarmFormData, farmFormSchema } from '../types/schemas';
-
-function NoData({ 
-  icon = 'folder-open', 
-  text = '暂无数据', 
-  style 
-}: { 
-  icon?: React.ComponentProps<typeof MaterialIcons>['name']; 
-  text?: string; 
-  style?: object 
-}) {
-  return (
-    <View style={[
-      {
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-        borderRadius: 8,
-        padding: 24,
-      },
-      style
-    ]}>
-      <MaterialIcons name={icon} size={48} color="#999" style={{ marginBottom: 8 }} />
-      <Text style={{ fontSize: 14, color: '#999', textAlign: 'center' }}>{text}</Text>
-    </View>
-  );
-}
 
 export default function DetailScreen() {
   const router = useRouter();
@@ -419,33 +391,10 @@ export default function DetailScreen() {
           </View>
           <View style={styles.infoRowHorizontal}>
             <Text style={styles.infoLabelHorizontal}>养殖情况图片</Text>
-            <View style={styles.imageGrid}>
-              {(formData.farm_images ?? []).length > 0 ? (
-                (formData.farm_images ?? []).map((image, index) => (
-                  <TouchableOpacity 
-                    key={index} 
-                    style={styles.imageItem}
-                    onPress={() => openImagePreview(
-                      (formData.farm_images ?? []).map(img => ({ url: img.url, name: img.name })),
-                      index
-                    )}
-                    activeOpacity={0.9}
-                  >
-                    <Image 
-                      source={{ uri: image.url }} 
-                      style={styles.image}
-                      contentFit="cover"
-                      cachePolicy="memory-disk"
-                      transition={200}
-                    />
-                  </TouchableOpacity>
-                ))
-              ) : (
-                <View style={styles.imageItemEmpty}>
-                  <NoData text="暂无数据" style={{ backgroundColor: 'transparent' }} />
-                </View>
-              )}
-            </View>
+            <ImageGridDisplay
+              images={formData.farm_images ?? []}
+              onImagePress={openImagePreview}
+            />
           </View>
         </View>
 
@@ -474,33 +423,10 @@ export default function DetailScreen() {
           </View>
           <View style={styles.infoRowHorizontal}>
             <Text style={styles.infoLabelHorizontal}>尾水处理图片</Text>
-            <View style={styles.imageGrid}>
-              {(formData.tail_water_images ?? []).length > 0 ? (
-                (formData.tail_water_images ?? []).map((image, index) => (
-                  <TouchableOpacity 
-                    key={index} 
-                    style={styles.imageItem}
-                    onPress={() => openImagePreview(
-                      (formData.tail_water_images ?? []).map(img => ({ url: img.url, name: img.name })),
-                      index
-                    )}
-                    activeOpacity={0.9}
-                  >
-                    <Image 
-                      source={{ uri: image.url }} 
-                      style={styles.image}
-                      contentFit="cover"
-                      cachePolicy="memory-disk"
-                      transition={200}
-                    />
-                  </TouchableOpacity>
-                ))
-              ) : (
-                <View style={styles.imageItemEmpty}>
-                  <NoData text="暂无数据" style={{ backgroundColor: 'transparent' }} />
-                </View>
-              )}
-            </View>
+            <ImageGridDisplay
+              images={formData.tail_water_images ?? []}
+              onImagePress={openImagePreview}
+            />
           </View>
         </View>
 
