@@ -2,8 +2,16 @@
 
 // 获取文件路径 去掉query参数
 export const getFileUrl = (path: string) => {
-  const url = new URL(path);
-  return url.origin + url.pathname;
+  try {
+    console.log('[getFileUrl] 输入 path:', path);
+    const url = new URL(path);
+    const result = url.origin + url.pathname;
+    console.log('[getFileUrl] 输出 result:', result);
+    return result;
+  } catch (error) {
+    console.error('[getFileUrl] 解析 URL 失败:', error, 'path:', path);
+    return path;
+  }
 }
 export function getContentTypeByExtension(filename: string): string {
   // 从文件名中提取扩展名

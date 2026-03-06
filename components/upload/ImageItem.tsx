@@ -2,13 +2,16 @@ import { theme } from '@/styles/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { FileDownloader } from './FileDownloader';
 import { ImageItemProps } from './types';
 
 export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemProps) {
+  console.log('[ImageItem] 渲染 file:', file);
   const isUploaded = file.status === 'success' && file.uri.startsWith('http');
+  console.log('[ImageItem] isUploaded:', isUploaded, 'uri:', file.uri, 'startsWith http:', file.uri.startsWith('http'));
   const showShare = disabled && isUploaded;
+  const [imageError, setImageError] = React.useState(false);
 
   return (
     <>
@@ -17,13 +20,23 @@ export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemP
         onPress={() => onImagePress(file.uri)}
         activeOpacity={0.9}
       >
-        <Image 
-          source={{ uri: file.uri }} 
-          style={{ width: '100%', height: '100%' }}
-          contentFit="cover"
-          cachePolicy="memory-disk"
-          transition={200}
-        />
+        {imageError ? (
+          <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }}>
+            <MaterialIcons name="image" size={40} color="#999" />
+          </View>
+        ) : (
+          <Image 
+            source={{ uri: file.uri }} 
+            style={{ width: '100%', height: '100%' }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={200}
+            onError={() => {
+              console.log('[ImageItem] 图片加载失败:', file.uri);
+              setImageError(true);
+            }}
+          />
+        )}
         {file.status === 'uploading' && file.progress !== undefined && (
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${file.progress}%` }]} />
@@ -39,16 +52,6 @@ export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemP
         >
           <MaterialIcons name="close" size={18} color="white" />
         </TouchableOpacity>
-      )}
-      {file.status === 'success' && !showShare && (
-        <View style={styles.statusIndicator}>
-          <MaterialIcons name="check-circle" size={24} color="#4CAF50" />
-        </View>
-      )}
-      {file.status === 'error' && (
-        <View style={styles.statusIndicator}>
-          <MaterialIcons name="error" size={24} color={theme.colors.error} />
-        </View>
       )}
       {showShare && (
         <View style={styles.shareButtonContainer}>

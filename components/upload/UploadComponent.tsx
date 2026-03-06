@@ -8,7 +8,7 @@ import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } fr
 import { FileDownloader } from './FileDownloader';
 import { FileList } from './FileList';
 import { ImageGrid } from './ImageGrid';
-import { FileItem, UploadComponentProps } from './types';
+import { FileInfo, FileItem, UploadComponentProps } from './types';
 
 const styles = StyleSheet.create({
   container: {
@@ -90,33 +90,54 @@ export function UploadComponent({
   previewType,
   initialFiles = []
 }: UploadComponentProps) {
+  console.log('[UploadComponent] 初始化，initialFiles:', initialFiles);
+  
   const effectivePreviewType = previewType || (uploadType === 'image' ? 'picture' : 'list');
-  const [selectedFiles, setSelectedFiles] = useState<FileItem[]>(() => {
-    return initialFiles.map((item, index) => {
+  
+  // 使用 ref 标记是否已初始化
+  const initializedRef = useRef(false);
+  
+  // 处理 initialFiles 为 FileItem 的辅助函数
+  const processInitialFiles = (files: (string | FileInfo)[]) => {
+    return files.map((item: string | FileInfo, index: number) => {
       if (typeof item === 'string') {
         return {
-          id: `initial-${index}-${Date.now()}`,
+          id: `initial-${index}`,
           name: item.split('/').pop() || `file-${index}`,
           size: 0,
           type: 'image',
           uri: item,
-          status: 'success'
+          status: 'success' as const
         };
       } else {
         return {
-          id: `initial-${index}-${Date.now()}`,
+          id: `initial-${index}`,
           name: item.name,
-          size: 'size' in item && typeof item.size === 'number' ? item.size : 0,
+          size: item.size || 0,
           type: 'image',
           uri: item.url,
-          status: 'success'
+          status: 'success' as const
         };
       }
     });
+  };
+  
+  const [selectedFiles, setSelectedFiles] = useState<FileItem[]>(() => {
+    console.log('[UploadComponent] 处理 initialFiles，数量:', initialFiles.length);
+    const processed = processInitialFiles(initialFiles);
+    console.log('[UploadComponent] 最终 selectedFiles:', processed);
+    return processed;
   });
   const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileIdRef = useRef(0);
+  
+  // 只在第一次初始化时使用 initialFiles，之后不再监听
+  React.useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+    }
+  }, []);
 
   const generateFileId = () => {
     return `file_${++fileIdRef.current}_${Date.now()}`;
@@ -209,6 +230,7 @@ export function UploadComponent({
 
     const removedFileIndex = index !== undefined ? index : selectedFiles.findIndex(f => f.id === file.id);
     const newFiles = selectedFiles.filter(f => f.id !== file.id);
+    
     setSelectedFiles(newFiles);
     
     if (removedFileIndex !== -1) {

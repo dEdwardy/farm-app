@@ -10,12 +10,11 @@ const styles = StyleSheet.create({
     marginVertical: theme.spacing.md
   },
   fileList: {
-    maxHeight: 240,
+    maxHeight: 400,
     marginTop: theme.spacing.md,
     borderRadius: theme.borderRadius.md,
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    overflow: 'hidden'
+    borderColor: theme.colors.border
   }
 });
 

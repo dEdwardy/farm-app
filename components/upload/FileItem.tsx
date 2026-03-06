@@ -53,10 +53,6 @@ const getStatusIcon = (status: string) => {
   switch (status) {
     case 'uploading':
       return <ActivityIndicator size="small" color={theme.colors.primary} />;
-    case 'success':
-      return <Text style={{ fontSize: 16, color: theme.colors.success, marginLeft: theme.spacing.sm }}>✓</Text>;
-    case 'error':
-      return <Text style={{ fontSize: 16, color: theme.colors.error, marginLeft: theme.spacing.sm }}>✕</Text>;
     default:
       return null;
   }
@@ -68,7 +64,7 @@ export function FileItemComponent({ file, disabled, onRemove }: FileItemProps) {
 
   return (
     <TouchableOpacity 
-      style={[styles.fileItem, file.status === 'error' ? { backgroundColor: 'rgba(220, 53, 69, 0.05)' } : {}]}
+      style={styles.fileItem}
       activeOpacity={0.7}
     >
       {getFileIcon(file.type)}
@@ -78,12 +74,6 @@ export function FileItemComponent({ file, disabled, onRemove }: FileItemProps) {
           <Text style={[commonStyles.subtitle, { fontSize: 12 }]}>{Math.round(file.size / 1024)} KB</Text>
           {file.status === 'uploading' && file.progress !== undefined && (
             <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.primary, fontSize: 12 }]}>上传中 {file.progress}%</Text>
-          )}
-          {file.status === 'success' && (
-            <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.success, fontWeight: '500', fontSize: 12 }]}>上传成功</Text>
-          )}
-          {file.status === 'error' && (
-            <Text style={[commonStyles.subtitle, { marginLeft: theme.spacing.md, color: theme.colors.error, fontWeight: '500', fontSize: 12 }]}>上传失败</Text>
           )}
         </View>
       </View>
