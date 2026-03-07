@@ -51,7 +51,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       
       scaleAnim.setValue(0.8);
     }
-  }, [visible]);
+  }, [visible, fadeAnim, scaleAnim]);
 
   return (
     <Modal

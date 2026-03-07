@@ -1,6 +1,5 @@
-import { Input } from '@rneui/base';
 import React from 'react';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { FINAL_DESTINATION_OPTIONS, OPERATION_STATUS_OPTIONS, TREATMENT_METHOD_OPTIONS } from '../types/enums';
 import { CustomPicker } from './CustomPicker';
 
@@ -10,7 +9,7 @@ export interface FormField {
   type: 'text' | 'number' | 'select' | 'switch';
   placeholder: string;
   required: boolean;
-  options?: Array<{ label: string; value: string }>;
+  options?: { label: string; value: string }[];
 }
 
 export const formFields: FormField[] = [
@@ -180,8 +179,8 @@ export const formFields: FormField[] = [
 
 export const renderFormField = (
   field: FormField,
-  value: any,
-  onChange: (name: string, value: any) => void,
+  value: string | boolean | any,
+  onChange: (name: string, value: string | boolean | any) => void,
   error: string | undefined,
   disabled: boolean = false
 ) => {
@@ -194,24 +193,23 @@ export const renderFormField = (
             <Text style={styles.label}>{field.label}</Text>
             {field.required && <Text style={styles.requiredMark}>*</Text>}
           </View>
-          <Input
-                value={value}
-                onChangeText={(text) => onChange(field.name, text)}
-                placeholder={field.placeholder}
-                placeholderTextColor="#999"
-                keyboardType={field.type === 'number' ? 'numeric' : 'default'}
-                containerStyle={styles.inputBox}
-                inputStyle={styles.inputText}
-                errorMessage={error}
-                disabled={disabled}
-              />
+          <TextInput
+            value={String(value || '')}
+            onChangeText={(text: string) => onChange(field.name, text)}
+            placeholder={field.placeholder}
+            placeholderTextColor="#999"
+            keyboardType={field.type === 'number' ? 'numeric' : 'default'}
+            style={[styles.inputBox, error ? styles.inputError : null]}
+            editable={!disabled}
+          />
+          {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
       );
     case 'select':
       return (
         <CustomPicker
           label={field.label}
-          value={value}
+          value={String(value || '')}
           placeholder={field.placeholder}
           options={field.options || []}
           onChange={(val: string) => onChange(field.name, val)}
@@ -229,11 +227,11 @@ export const renderFormField = (
               {field.required && <Text style={styles.requiredMark}>*</Text>}
             </View>
             <Switch
-              value={value}
+              value={Boolean(value)}
               onValueChange={(val) => onChange(field.name, val)}
               disabled={disabled}
               trackColor={{ false: '#E0E0E0', true: '#4CAF50' }}
-              thumbColor={value ? '#FFFFFF' : '#F4F3F4'}
+              thumbColor={Boolean(value) ? '#FFFFFF' : '#F4F3F4'}
             />
           </View>
           {error && <Text style={styles.errorText}>{error}</Text>}
@@ -265,14 +263,17 @@ const styles = StyleSheet.create({
   },
   inputBox: {
     width: '100%',
-    padding: 0,
-  },
-  inputText: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
     fontSize: 14,
+    color: '#333',
+    backgroundColor: '#fff',
   },
-  placeholderText: {
-    fontSize: 14,
-    color: '#9E9E9E',
+  inputError: {
+    borderColor: '#FF5722',
   },
   switchContainer: {
     flexDirection: 'row',

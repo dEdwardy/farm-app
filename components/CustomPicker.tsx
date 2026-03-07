@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, FlatList } from 'react-native';
-import { Overlay } from '@rneui/base';
+import { Modal, StyleSheet, Text, TouchableOpacity, View, FlatList, Pressable } from 'react-native';
 
 interface CustomPickerProps {
   label: string;
   value: string;
   placeholder: string;
-  options: Array<{ label: string; value: string }>;
+  options: { label: string; value: string }[];
   onChange: (value: string) => void;
   error?: string;
   disabled?: boolean;
@@ -67,31 +66,35 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
       </TouchableOpacity>
       {error && <Text style={styles.errorText}>{error}</Text>}
       
-      <Overlay
-        isVisible={isVisible}
-        onBackdropPress={() => setIsVisible(false)}
-        overlayStyle={styles.overlay}
+      <Modal
+        visible={isVisible}
+        transparent={true}
         animationType="fade"
+        onRequestClose={() => setIsVisible(false)}
       >
-        <View style={styles.pickerContainer}>
-          <View style={styles.pickerHeader}>
-            <Text style={styles.pickerTitle}>{label}</Text>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setIsVisible(false)}
-            >
-              <Text style={styles.closeButtonText}>×</Text>
-            </TouchableOpacity>
+        <Pressable style={styles.modalBackdrop} onPress={() => setIsVisible(false)}>
+          <View style={styles.overlay}>
+            <View style={styles.pickerContainer}>
+              <View style={styles.pickerHeader}>
+                <Text style={styles.pickerTitle}>{label}</Text>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => setIsVisible(false)}
+                >
+                  <Text style={styles.closeButtonText}>×</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={options}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.value}
+                style={styles.optionsList}
+                showsVerticalScrollIndicator={false}
+              />
+            </View>
           </View>
-          <FlatList
-            data={options}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.value}
-            style={styles.optionsList}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      </Overlay>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -147,6 +150,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginLeft: 8,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   overlay: {
     width: '85%',
