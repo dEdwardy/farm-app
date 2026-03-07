@@ -12,6 +12,105 @@ import { useTheme } from '../contexts/ThemeContext';
 import { createFormStyles } from '../styles/formStyles';
 import { FarmFormData, farmFormSchema } from '../types/schemas';
 
+interface FarmImageData {
+  id?: string;
+  url: string;
+  name: string;
+  type?: string;
+  size?: number;
+}
+
+interface OriginalFile {
+  id: string;
+  url: string;
+  business_type: string;
+  name: string;
+  type: string;
+}
+
+// 将图片/文件数据转换为 OriginalFile 格式
+const processImageFiles = (
+  images: FarmImageData[] | undefined,
+  businessType: string,
+  defaultType: string
+): OriginalFile[] => {
+  if (!Array.isArray(images)) return [];
+  
+  return images
+    .filter((item): item is FarmImageData & { id: string } => !!item.id)
+    .map((item) => ({
+      id: item.id,
+      url: item.url,
+      business_type: businessType,
+      name: item.name,
+      type: item.type || defaultType,
+    }));
+};
+
+// 将图片/文件数据转换为 FormData 格式
+const mapImageData = (
+  images: (FarmImageData | string)[] | undefined
+): { url: string; name: string; size: number }[] => {
+  if (!Array.isArray(images)) return [];
+  
+  return images.map((item) => {
+    if (typeof item === 'string') {
+      return { url: item, name: item.split('/').pop() || '', size: 0 };
+    }
+    return { url: item.url, name: item.name, size: item.size || 0 };
+  });
+};
+
+// 将表单数据转换为提交格式
+const mapFormData = (farmData: any): FarmFormData => {
+  return {
+    farm_name: String(farmData.farm_name ?? ''),
+    address: String(farmData.address ?? ''),
+    longitude_latitude: String(farmData.longitude_latitude ?? ''),
+    responsible_person: String(farmData.responsible_person ?? ''),
+    contact_phone: String(farmData.contact_phone ?? ''),
+    pond_count: String(farmData.pond_count ?? ''),
+    water_area_acre: String(farmData.water_area_acre ?? ''),
+    farm_area_acre: String(farmData.farm_area_acre ?? ''),
+    other_water_area_sqm: String(farmData.other_water_area_sqm ?? ''),
+    other_farm_area_acre: String(farmData.other_farm_area_acre ?? ''),
+    avg_water_depth: String(farmData.avg_water_depth ?? ''),
+    main_species: String(farmData.main_species ?? ''),
+    farm_mode: String(farmData.farm_mode ?? ''),
+    operation_status: String(farmData.operation_status ?? ''),
+    output: String(farmData.output ?? ''),
+    output_value: String(farmData.output_value ?? ''),
+    total_investment: String(farmData.total_investment ?? ''),
+    farm_images: mapImageData(farmData.farm_images),
+    has_treatment_facility: Boolean(farmData.has_treatment_facility ?? false),
+    treatment_method: String(farmData.treatment_method ?? ''),
+    treatment_facility_area: String(farmData.treatment_facility_area ?? ''),
+    treated_discharge_volume: String(farmData.treated_discharge_volume ?? ''),
+    final_destination: String(farmData.final_destination ?? ''),
+    tail_water_images: mapImageData(farmData.tail_water_images),
+    safety_info: mapImageData(farmData.safety_info),
+  };
+};
+
+// 处理 Zod 验证错误，转换为字段错误映射
+const handleValidationError = (error: unknown): Record<string, string> => {
+  if (!(error instanceof Error) || !('issues' in error)) {
+    return { global: '数据更新失败，请稍后重试' };
+  }
+  
+  const fieldErrors: Record<string, string> = {};
+  const issues = (error as any).issues || [];
+  
+  for (const issue of issues) {
+    if (issue.path && issue.path.length > 0) {
+      const fieldName = issue.path[0] as string;
+      fieldErrors[fieldName] = issue.message;
+    }
+  }
+  
+  return fieldErrors;
+};
+
 export default function DetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -50,14 +149,6 @@ export default function DetailScreen() {
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  interface OriginalFile {
-    id: string;
-    url: string;
-    business_type: string;
-    name: string;
-    type: string;
-  }
   
   const [originalFiles, setOriginalFiles] = useState<OriginalFile[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -82,111 +173,22 @@ export default function DetailScreen() {
 
     try {
       const farmData = await dataService.getFarmById(id);
-      if (farmData) {
-        interface FarmImageData {
-          id?: string;
-          url: string;
-          name: string;
-          type?: string;
-        }
-        
-        // 准备原始文件数据
-        const files: OriginalFile[] = [];
-        
-        // 处理养殖情况图片
-        if (Array.isArray(farmData.farm_images)) {
-          farmData.farm_images.forEach((item: FarmImageData) => {
-            if (item.id) {
-              files.push({
-                id: item.id,
-                url: item.url,
-                business_type: 'farm_images',
-                name: item.name,
-                type: item.type || 'image'
-              });
-            }
-          });
-        }
-        
-        // 处理尾水处理图片
-        if (Array.isArray(farmData.tail_water_images)) {
-          farmData.tail_water_images.forEach((item: FarmImageData) => {
-            if (item.id) {
-              files.push({
-                id: item.id,
-                url: item.url,
-                business_type: 'tail_water_images',
-                name: item.name,
-                type: item.type || 'image'
-              });
-            }
-          });
-        }
-        
-        // 处理安全信息文件
-        if (Array.isArray(farmData.safety_info)) {
-          farmData.safety_info.forEach((item: FarmImageData) => {
-            if (item.id) {
-              files.push({
-                id: item.id,
-                url: item.url,
-                business_type: 'safety_info',
-                name: item.name,
-                type: item.type || 'file'
-              });
-            }
-          });
-        }
-        
-        // 存储原始文件数据
-        setOriginalFiles(files);
-        
-        // 将获取的数据设置到formData
-        setFormData({
-          farm_name: String(farmData.farm_name ?? ''),
-          address: String(farmData.address ?? ''),
-          longitude_latitude: String(farmData.longitude_latitude ?? ''),
-          responsible_person: String(farmData.responsible_person ?? ''),
-          contact_phone: String(farmData.contact_phone ?? ''),
-          pond_count: String(farmData.pond_count ?? ''),
-          water_area_acre: String(farmData.water_area_acre ?? ''),
-          farm_area_acre: String(farmData.farm_area_acre ?? ''),
-          other_water_area_sqm: String(farmData.other_water_area_sqm ?? ''),
-          other_farm_area_acre: String(farmData.other_farm_area_acre ?? ''),
-          avg_water_depth: String(farmData.avg_water_depth ?? ''),
-          main_species: String(farmData.main_species ?? ''),
-          farm_mode: String(farmData.farm_mode ?? ''),
-          operation_status: String(farmData.operation_status ?? ''),
-          output: String(farmData.output ?? ''),
-          output_value: String(farmData.output_value ?? ''),
-          total_investment: String(farmData.total_investment ?? ''),
-          farm_images: Array.isArray(farmData.farm_images) ? farmData.farm_images.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '', size: 0 };
-            }
-            return { ...item, size: (item as FarmImageData).size || 0 };
-          }) : [],
-          has_treatment_facility: Boolean(farmData.has_treatment_facility ?? false),
-          treatment_method: String(farmData.treatment_method ?? ''),
-          treatment_facility_area: String(farmData.treatment_facility_area ?? ''),
-          treated_discharge_volume: String(farmData.treated_discharge_volume ?? ''),
-          final_destination: String(farmData.final_destination ?? ''),
-          tail_water_images: Array.isArray(farmData.tail_water_images) ? farmData.tail_water_images.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '', size: 0 };
-            }
-            return { ...item, size: (item as FarmImageData).size || 0 };
-          }) : [],
-          safety_info: Array.isArray(farmData.safety_info) ? farmData.safety_info.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '', size: 0 };
-            }
-            return { ...item, size: (item as FarmImageData).size || 0 };
-          }) : [],
-        });
-      } else {
+      if (!farmData) {
         setErrors({ global: '获取数据失败，未找到该记录' });
+        return;
       }
+
+      // 准备原始文件数据
+      const files: OriginalFile[] = [
+        ...processImageFiles(farmData.farm_images, 'farm_images', 'image'),
+        ...processImageFiles(farmData.tail_water_images, 'tail_water_images', 'image'),
+        ...processImageFiles(farmData.safety_info, 'safety_info', 'file'),
+      ];
+      
+      setOriginalFiles(files);
+      
+      // 将获取的数据设置到formData
+      setFormData(mapFormData(farmData));
     } catch (e) {
       setErrors({ global: '获取数据失败，请稍后重试' });
     } finally {
@@ -273,76 +275,18 @@ export default function DetailScreen() {
     setLoading(true);
 
     try {
-      // 验证表单数据
       farmFormSchema.parse(formData);
-
       const updatedFarm = await dataService.updateFarm(id, formData, originalFiles);
       
-      if (updatedFarm) {
-        // 更新本地状态以回显数据
-        setFormData({
-          farm_name: String(updatedFarm.farm_name ?? ''),
-          address: String(updatedFarm.address ?? ''),
-          longitude_latitude: String(updatedFarm.longitude_latitude ?? ''),
-          responsible_person: String(updatedFarm.responsible_person ?? ''),
-          contact_phone: String(updatedFarm.contact_phone ?? ''),
-          pond_count: String(updatedFarm.pond_count ?? ''),
-          water_area_acre: String(updatedFarm.water_area_acre ?? ''),
-          farm_area_acre: String(updatedFarm.farm_area_acre ?? ''),
-          other_water_area_sqm: String(updatedFarm.other_water_area_sqm ?? ''),
-          other_farm_area_acre: String(updatedFarm.other_farm_area_acre ?? ''),
-          avg_water_depth: String(updatedFarm.avg_water_depth ?? ''),
-          main_species: String(updatedFarm.main_species ?? ''),
-          farm_mode: String(updatedFarm.farm_mode ?? ''),
-          operation_status: String(updatedFarm.operation_status ?? ''),
-          output: String(updatedFarm.output ?? ''),
-          output_value: String(updatedFarm.output_value ?? ''),
-          total_investment: String(updatedFarm.total_investment ?? ''),
-          farm_images: Array.isArray(updatedFarm.farm_images) ? updatedFarm.farm_images.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '' };
-            }
-            return { url: item.url, name: item.name };
-          }) : [],
-          has_treatment_facility: Boolean(updatedFarm.has_treatment_facility ?? false),
-          treatment_method: String(updatedFarm.treatment_method ?? ''),
-          treatment_facility_area: String(updatedFarm.treatment_facility_area ?? ''),
-          treated_discharge_volume: String(updatedFarm.treated_discharge_volume ?? ''),
-          final_destination: String(updatedFarm.final_destination ?? ''),
-          tail_water_images: Array.isArray(updatedFarm.tail_water_images) ? updatedFarm.tail_water_images.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '' };
-            }
-            return { url: item.url, name: item.name };
-          }) : [],
-          safety_info: Array.isArray(updatedFarm.safety_info) ? updatedFarm.safety_info.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '' };
-            }
-            return { url: item.url, name: item.name };
-          }) : [],
-        });
-        setSuccess('数据更新成功！');
-        setIsEditing(false);
-      } else {
+      if (!updatedFarm) {
         setErrors({ global: '数据更新失败，请稍后重试' });
+        return;
       }
+      
+      setFormData(mapFormData(updatedFarm));
+      setSuccess('数据更新成功！');
     } catch (e) {
-      if (e instanceof Error) {
-        // 处理验证错误，将错误信息按字段分组
-        const fieldErrors: Record<string, string> = {};
-        if ('issues' in e) {
-          (e as any).issues.forEach((issue: any) => {
-            if (issue.path && issue.path.length > 0) {
-              const fieldName = issue.path[0];
-              fieldErrors[fieldName] = issue.message;
-            }
-          });
-        }
-        setErrors(fieldErrors);
-      } else {
-        setErrors({ global: '数据更新失败，请稍后重试' });
-      }
+      setErrors(handleValidationError(e));
     } finally {
       setLoading(false);
     }
