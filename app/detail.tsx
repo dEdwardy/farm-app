@@ -51,7 +51,15 @@ export default function DetailScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [originalFiles, setOriginalFiles] = useState<any[]>([]);
+  interface OriginalFile {
+    id: string;
+    url: string;
+    business_type: string;
+    name: string;
+    type: string;
+  }
+  
+  const [originalFiles, setOriginalFiles] = useState<OriginalFile[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
@@ -75,19 +83,26 @@ export default function DetailScreen() {
     try {
       const farmData = await dataService.getFarmById(id);
       if (farmData) {
+        interface FarmImageData {
+          id?: string;
+          url: string;
+          name: string;
+          type?: string;
+        }
+        
         // 准备原始文件数据
-        const files: { id: string; url: string; business_type: string; name: string; type: string }[] = [];
+        const files: OriginalFile[] = [];
         
         // 处理养殖情况图片
         if (Array.isArray(farmData.farm_images)) {
-          farmData.farm_images.forEach((item: any) => {
+          farmData.farm_images.forEach((item: FarmImageData) => {
             if (item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
                 business_type: 'farm_images',
                 name: item.name,
-                type: item.type
+                type: item.type || 'image'
               });
             }
           });
@@ -95,14 +110,14 @@ export default function DetailScreen() {
         
         // 处理尾水处理图片
         if (Array.isArray(farmData.tail_water_images)) {
-          farmData.tail_water_images.forEach((item: any) => {
+          farmData.tail_water_images.forEach((item: FarmImageData) => {
             if (item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
                 business_type: 'tail_water_images',
                 name: item.name,
-                type: item.type
+                type: item.type || 'image'
               });
             }
           });
@@ -110,14 +125,14 @@ export default function DetailScreen() {
         
         // 处理安全信息文件
         if (Array.isArray(farmData.safety_info)) {
-          farmData.safety_info.forEach((item: any) => {
+          farmData.safety_info.forEach((item: FarmImageData) => {
             if (item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
                 business_type: 'safety_info',
                 name: item.name,
-                type: item.type
+                type: item.type || 'file'
               });
             }
           });
@@ -145,14 +160,29 @@ export default function DetailScreen() {
           output: String(farmData.output ?? ''),
           output_value: String(farmData.output_value ?? ''),
           total_investment: String(farmData.total_investment ?? ''),
-          farm_images: Array.isArray(farmData.farm_images) ? farmData.farm_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
+          farm_images: Array.isArray(farmData.farm_images) ? farmData.farm_images.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '', size: 0 };
+            }
+            return { ...item, size: (item as FarmImageData).size || 0 };
+          }) : [],
           has_treatment_facility: Boolean(farmData.has_treatment_facility ?? false),
           treatment_method: String(farmData.treatment_method ?? ''),
           treatment_facility_area: String(farmData.treatment_facility_area ?? ''),
           treated_discharge_volume: String(farmData.treated_discharge_volume ?? ''),
           final_destination: String(farmData.final_destination ?? ''),
-          tail_water_images: Array.isArray(farmData.tail_water_images) ? farmData.tail_water_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
-          safety_info: Array.isArray(farmData.safety_info) ? farmData.safety_info.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
+          tail_water_images: Array.isArray(farmData.tail_water_images) ? farmData.tail_water_images.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '', size: 0 };
+            }
+            return { ...item, size: (item as FarmImageData).size || 0 };
+          }) : [],
+          safety_info: Array.isArray(farmData.safety_info) ? farmData.safety_info.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '', size: 0 };
+            }
+            return { ...item, size: (item as FarmImageData).size || 0 };
+          }) : [],
         });
       } else {
         setErrors({ global: '获取数据失败，未找到该记录' });
@@ -268,14 +298,29 @@ export default function DetailScreen() {
           output: String(updatedFarm.output ?? ''),
           output_value: String(updatedFarm.output_value ?? ''),
           total_investment: String(updatedFarm.total_investment ?? ''),
-          farm_images: Array.isArray(updatedFarm.farm_images) ? updatedFarm.farm_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '' } : { url: item.url, name: item.name }) : [],
+          farm_images: Array.isArray(updatedFarm.farm_images) ? updatedFarm.farm_images.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '' };
+            }
+            return { url: item.url, name: item.name };
+          }) : [],
           has_treatment_facility: Boolean(updatedFarm.has_treatment_facility ?? false),
           treatment_method: String(updatedFarm.treatment_method ?? ''),
           treatment_facility_area: String(updatedFarm.treatment_facility_area ?? ''),
           treated_discharge_volume: String(updatedFarm.treated_discharge_volume ?? ''),
           final_destination: String(updatedFarm.final_destination ?? ''),
-          tail_water_images: Array.isArray(updatedFarm.tail_water_images) ? updatedFarm.tail_water_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '' } : { url: item.url, name: item.name }) : [],
-          safety_info: Array.isArray(updatedFarm.safety_info) ? updatedFarm.safety_info.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '' } : { url: item.url, name: item.name }) : [],
+          tail_water_images: Array.isArray(updatedFarm.tail_water_images) ? updatedFarm.tail_water_images.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '' };
+            }
+            return { url: item.url, name: item.name };
+          }) : [],
+          safety_info: Array.isArray(updatedFarm.safety_info) ? updatedFarm.safety_info.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '' };
+            }
+            return { url: item.url, name: item.name };
+          }) : [],
         });
         setSuccess('数据更新成功！');
         setIsEditing(false);
@@ -437,16 +482,16 @@ export default function DetailScreen() {
             <Text style={styles.infoLabelHorizontal}>安全信息文件</Text>
             <View style={styles.fileList}>
               {formData.safety_info && formData.safety_info.length > 0 ? (
-                formData.safety_info.map((file, index) => (
-                  <View key={index} style={styles.fileItem}>
+                formData.safety_info.map((file) => (
+                  <View key={file.url} style={styles.fileItem}>
                     <View style={styles.fileInfo}>
                       <Text style={styles.fileName} numberOfLines={2} ellipsizeMode="tail">{file.name}</Text>
-                      <Text style={styles.fileSize}>{(file as any).size ? `${((file as any).size / 1024 / 1024).toFixed(2)} MB` : '未知大小'}</Text>
+                      <Text style={styles.fileSize}>{file.size ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : '未知大小'}</Text>
                     </View>
                     <FileDownloader
                       fileUrl={file.url}
                       fileName={file.name}
-                      fileSize={(file as any).size}
+                      fileSize={file.size}
                     />
                   </View>
                 ))

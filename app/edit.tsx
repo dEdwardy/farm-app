@@ -71,43 +71,59 @@ export default function EditScreen() {
           safety_info,
         } = farmData;
 
+        interface FarmImageData {
+          id?: string;
+          url: string;
+          name: string;
+          type?: string;
+          size?: number;
+        }
+
+        interface OriginalFile {
+          id: string;
+          url: string;
+          business_type: string;
+          name: string;
+          type: string;
+        }
+
         // 准备原始文件数据
-        const files: { id: string; url: string; business_type: string; name: string; type: string }[] = [];
+        const files: OriginalFile[] = [];
         if (Array.isArray(farm_images)) {
-          farm_images.forEach((item: any) => {
+          farm_images.forEach((item: FarmImageData) => {
             if (item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
                 business_type: 'farm_images',
                 name: item.name,
-                type: item.type
+                type: item.type || 'image'
               });
             }
           });
         }
         if (Array.isArray(tail_water_images)) {
-          tail_water_images.forEach((item: any) => {
+          tail_water_images.forEach((item: FarmImageData) => {
             if (item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
                 business_type: 'tail_water_images',
                 name: item.name,
-                type: item.type
+                type: item.type || 'image'
               });
             }
           });
         }
         if (Array.isArray(safety_info)) {
-          safety_info.forEach((item: any) => {
+          safety_info.forEach((item: FarmImageData) => {
             if (item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
                 business_type: 'safety_info',
                 name: item.name,
-                type: item.type
+                type: item.type || 'file'
               });
             }
           });
@@ -132,14 +148,29 @@ export default function EditScreen() {
           output: String(output ?? ''),
           output_value: String(output_value ?? ''),
           total_investment: String(total_investment ?? ''),
-          farm_images: Array.isArray(farm_images) ? farm_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
+          farm_images: Array.isArray(farm_images) ? farm_images.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '', size: 0 };
+            }
+            return { ...item, size: item.size || 0 };
+          }) : [],
           has_treatment_facility: Boolean(has_treatment_facility ?? false),
           treatment_method: String(treatment_method ?? ''),
           treatment_facility_area: String(treatment_facility_area ?? ''),
           treated_discharge_volume: String(treated_discharge_volume ?? ''),
           final_destination: String(final_destination ?? ''),
-          tail_water_images: Array.isArray(tail_water_images) ? tail_water_images.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
-          safety_info: Array.isArray(safety_info) ? safety_info.map((item: any) => typeof item === 'string' ? { url: item, name: item.split('/').pop() || '', size: 0 } : { ...item, size: item.size || 0 }) : [],
+          tail_water_images: Array.isArray(tail_water_images) ? tail_water_images.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '', size: 0 };
+            }
+            return { ...item, size: item.size || 0 };
+          }) : [],
+          safety_info: Array.isArray(safety_info) ? safety_info.map((item: FarmImageData | string) => {
+            if (typeof item === 'string') {
+              return { url: item, name: item.split('/').pop() || '', size: 0 };
+            }
+            return { ...item, size: item.size || 0 };
+          }) : [],
         };
 
         Object.keys(processedData).forEach(key => {

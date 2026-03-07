@@ -56,7 +56,7 @@ export function ImageGridDisplay({ images, onImagePress }: ImageGridDisplayProps
   return (
     <View style={styles.container}>
       {images.map((image, index) => (
-        <View key={index} style={styles.item}>
+        <View key={image.url} style={styles.item}>
           <TouchableOpacity
             style={styles.imageContainer}
             onPress={() => onImagePress?.(images, index)}
