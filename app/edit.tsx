@@ -10,7 +10,9 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useFarmForm } from '@/hooks/useFarmForm';
 import { dataService } from '@/services/dataService';
 import { createFormStyles } from '@/styles/formStyles';
-import { FarmFile } from '@/types/farm';
+import type { FarmFile } from '@/types/farm';
+import { logger } from '@/utils/logger';
+import { toast } from '@/utils/toast';
 
 // 类型定义
 interface FarmImageData {
@@ -160,7 +162,10 @@ export default function EditScreen() {
     setLoading(true);
     try {
       const farmData = await dataService.getFarmById(id);
-      if (!farmData) return;
+      if (!farmData) {
+        toast.error('获取数据失败，未找到该记录');
+        return;
+      }
 
       const files = extractOriginalFiles(
         farmData.farm_images || [],
@@ -173,8 +178,9 @@ export default function EditScreen() {
       Object.entries(processedData).forEach(([key, value]) => {
         handleChange(key, value);
       });
-    } catch (e) {
-      console.error('获取数据失败:', e);
+    } catch (error) {
+      logger.error('edit', '获取数据失败:', error);
+      toast.error('获取数据失败，请稍后重试');
     } finally {
       setLoading(false);
     }
@@ -190,6 +196,20 @@ export default function EditScreen() {
       // 成功后的逻辑在 onSuccess 中处理
     }
   }, [submit, id]);
+
+  // 渲染表单字段
+  const renderFormFields = useCallback((fields: typeof formFields) => {
+    return fields.map((field) => (
+      <View key={field.name} style={styles.formGroup}>
+        {renderFormField(
+          field,
+          formData[field.name as keyof typeof formData] ?? '',
+          handleChange,
+          errors[field.name]
+        )}
+      </View>
+    ));
+  }, [formData, handleChange, errors]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -223,31 +243,13 @@ export default function EditScreen() {
         {/* 场所信息 */}
         <View style={styles.formContainer}>
           <Text style={styles.sectionTitle}>场所信息</Text>
-          {formFields.slice(0, 5).map((field) => (
-            <View key={field.name} style={styles.formGroup}>
-              {renderFormField(
-                field,
-                formData[field.name as keyof typeof formData],
-                handleChange,
-                errors[field.name]
-              )}
-            </View>
-          ))}
+          {renderFormFields(formFields.slice(0, 5))}
         </View>
 
         {/* 养殖信息 */}
         <View style={styles.formContainer}>
           <Text style={styles.sectionTitle}>养殖信息</Text>
-          {formFields.slice(5, 17).map((field) => (
-            <View key={field.name} style={styles.formGroup}>
-              {renderFormField(
-                field,
-                formData[field.name as keyof typeof formData],
-                handleChange,
-                errors[field.name]
-              )}
-            </View>
-          ))}
+          {renderFormFields(formFields.slice(5, 17))}
           {/* 养殖情况图片上传 */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>养殖情况图片</Text>
@@ -271,7 +273,7 @@ export default function EditScreen() {
             <View key={field.name} style={styles.formGroup}>
               {renderFormField(
                 field,
-                formData[field.name as keyof typeof formData],
+                formData[field.name as keyof typeof formData] ?? '',
                 handleChange,
                 errors[field.name]
               )}
@@ -280,16 +282,7 @@ export default function EditScreen() {
           {/* 其他尾水处理字段 - 仅当 has_treatment_facility 为 true 时显示 */}
           {formData.has_treatment_facility && (
             <>
-              {formFields.slice(18).map((field) => (
-                <View key={field.name} style={styles.formGroup}>
-                  {renderFormField(
-                    field,
-                    formData[field.name as keyof typeof formData],
-                    handleChange,
-                    errors[field.name]
-                  )}
-                </View>
-              ))}
+              {renderFormFields(formFields.slice(18))}
               {/* 尾水处理图片上传 */}
               <View style={styles.formGroup}>
                 <Text style={styles.label}>尾水处理图片</Text>

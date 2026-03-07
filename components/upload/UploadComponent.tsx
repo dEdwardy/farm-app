@@ -1,5 +1,6 @@
 import { commonStyles } from '@/styles/commonStyles';
 import { theme } from '@/styles/theme';
+import { logger } from '@/utils/logger';
 import * as DocumentPicker from 'expo-document-picker';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,7 +9,7 @@ import { ActivityIndicator, Alert, Modal, StyleSheet, Text, TouchableOpacity, Vi
 import { FileDownloader } from './FileDownloader';
 import { FileList } from './FileList';
 import { ImageGrid } from './ImageGrid';
-import { FileInfo, FileItem, UploadComponentProps } from './types';
+import type { FileInfo, FileItem, UploadComponentProps } from './types';
 
 const styles = StyleSheet.create({
   container: {
@@ -90,7 +91,7 @@ export function UploadComponent({
   previewType,
   initialFiles = []
 }: UploadComponentProps) {
-  console.log('[UploadComponent] 初始化，initialFiles:', initialFiles);
+  logger.debug('UploadComponent', '初始化，initialFiles:', initialFiles);
   
   const effectivePreviewType = previewType || (uploadType === 'image' ? 'picture' : 'list');
   
@@ -99,7 +100,8 @@ export function UploadComponent({
   
   // 处理 initialFiles 为 FileItem 的辅助函数
   const processInitialFiles = (files: (string | FileInfo)[]) => {
-    return files.map((item: string | FileInfo, index: number) => {
+    logger.debug('UploadComponent', '处理 initialFiles，数量:', files.length);
+    const processed = files.map((item: string | FileInfo, index: number) => {
       if (typeof item === 'string') {
         return {
           id: `initial-${index}`,
@@ -120,12 +122,12 @@ export function UploadComponent({
         };
       }
     });
+    logger.debug('UploadComponent', '最终 selectedFiles:', processed);
+    return processed;
   };
   
   const [selectedFiles, setSelectedFiles] = useState<FileItem[]>(() => {
-    console.log('[UploadComponent] 处理 initialFiles，数量:', initialFiles.length);
     const processed = processInitialFiles(initialFiles);
-    console.log('[UploadComponent] 最终 selectedFiles:', processed);
     return processed;
   });
   const [uploading, setUploading] = useState(false);

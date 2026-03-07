@@ -1,5 +1,6 @@
-import { FarmFile, FarmRow, PaginatedResponse, PaginationParams } from '@/types/farm';
 import { checkSupabase } from '@/utils/apiHelper';
+import { logger } from '@/utils/logger';
+import type { FarmFile, FarmRow, PaginatedResponse, PaginationParams } from '@/types/farm';
 
 export type { FarmFile, FarmRow, PaginatedResponse, PaginationParams };
 
@@ -121,6 +122,7 @@ export const dataService = {
         if (error) throw error;
       }
     } catch (error) {
+      logger.error('dataService', '保存文件失败:', error);
       throw error;
     }
   },
@@ -139,6 +141,7 @@ export const dataService = {
       if (error) return [];
       return files?.map((file: any) => file.url) || [];
     } catch (error) {
+      logger.error('dataService', '获取文件失败:', error);
       return [];
     }
   },
@@ -287,23 +290,25 @@ export const dataService = {
             });
             
             if (filesToDelete.length > 0) {
-              try {
+                try {
+                  await check.client
+                    .from('files')
+                    .delete()
+                    .in('id', filesToDelete);
+                } catch (error) {
+                  logger.error('dataService', '删除文件失败:', error);
+                }
+              }
+              
+              if (filesToAdd.length > 0) {
                 await check.client
                   .from('files')
-                  .delete()
-                  .in('id', filesToDelete);
-              } catch (_) {
+                  .insert(filesToAdd);
               }
             }
-            
-            if (filesToAdd.length > 0) {
-              await check.client
-                .from('files')
-                .insert(filesToAdd);
-            }
+          } catch (error) {
+            logger.error('dataService', '更新文件失败:', error);
           }
-        } catch (_) {
-        }
       }
 
       if (updatedFarm) {
@@ -398,7 +403,8 @@ export const dataService = {
           await check.client
             .from('files')
             .insert(allFilesData);
-        } catch (_) {
+        } catch (error) {
+          logger.error('dataService', '添加文件失败:', error);
         }
       }
 
@@ -433,7 +439,8 @@ export const dataService = {
         .eq('id', id);
 
       return !error;
-    } catch (_) {
+    } catch (error) {
+      logger.error('dataService', '软删除失败:', error);
       return false;
     }
   }

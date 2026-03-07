@@ -2,8 +2,9 @@ import { useCallback, useState } from 'react';
 import { z } from 'zod';
 
 import { dataService } from '@/services/dataService';
-import { FarmFile, FormFile } from '@/types/farm';
+import type { FarmFile, FormFile } from '@/types/farm';
 import { FarmFormData, farmFormSchema } from '@/types/schemas';
+import { logger } from '@/utils/logger';
 import { toast } from '@/utils/toast';
 
 interface UseFarmFormOptions {
@@ -163,7 +164,8 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
         toast.error('保存失败');
         return false;
       }
-    } catch (_) {
+    } catch (error) {
+      logger.error('useFarmForm', '保存失败:', error);
       toast.error('保存失败');
       return false;
     } finally {
