@@ -139,12 +139,12 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
     setLoading(true);
     setMessage(null);
 
-    // 将可选数值字段的空字符串转换为 null
+    // 将可选数值字段的空字符串转换为 undefined
     const submitData = {
       ...formData,
-      output: formData.output || null,
-      output_value: formData.output_value || null,
-      total_investment: formData.total_investment || null,
+      output: formData.output || undefined,
+      output_value: formData.output_value || undefined,
+      total_investment: formData.total_investment || undefined,
     };
 
     try {
