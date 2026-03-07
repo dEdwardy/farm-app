@@ -270,7 +270,8 @@ export default function EditScreen() {
         {/* 尾水处理 */}
         <View style={styles.formContainer}>
           <Text style={styles.sectionTitle}>尾水处理</Text>
-          {formFields.slice(17).map((field) => (
+          {/* 有无尾水处理设施 - 第一个字段，始终显示 */}
+          {formFields.slice(17, 18).map((field) => (
             <View key={field.name} style={styles.formGroup}>
               {renderFormField(
                 field,
@@ -280,19 +281,34 @@ export default function EditScreen() {
               )}
             </View>
           ))}
-          {/* 尾水处理图片上传 */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>尾水处理图片</Text>
-            <OssUpload
-              onUploadComplete={(files) => handleImagesChange('tail_water_images', files)}
-              onFileRemove={(_, index) => handleImageRemove('tail_water_images', index)}
-              maxFiles={5}
-              uploadType="image"
-              previewType="picture"
-              initialFiles={formData.tail_water_images || []}
-              loading={saving}
-            />
-          </View>
+          {/* 其他尾水处理字段 - 仅当 has_treatment_facility 为 true 时显示 */}
+          {formData.has_treatment_facility && (
+            <>
+              {formFields.slice(18).map((field) => (
+                <View key={field.name} style={styles.formGroup}>
+                  {renderFormField(
+                    field,
+                    formData[field.name as keyof typeof formData],
+                    handleChange,
+                    errors[field.name]
+                  )}
+                </View>
+              ))}
+              {/* 尾水处理图片上传 */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>尾水处理图片</Text>
+                <OssUpload
+                  onUploadComplete={(files) => handleImagesChange('tail_water_images', files)}
+                  onFileRemove={(_, index) => handleImageRemove('tail_water_images', index)}
+                  maxFiles={5}
+                  uploadType="image"
+                  previewType="picture"
+                  initialFiles={formData.tail_water_images || []}
+                  loading={saving}
+                />
+              </View>
+            </>
+          )}
         </View>
 
         {/* 安全信息 */}
