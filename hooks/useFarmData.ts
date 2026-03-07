@@ -1,16 +1,8 @@
 import { useCallback, useState } from 'react';
 
-import { dataService, FarmRow } from '@/services/dataService';
+import { dataService } from '@/services/dataService';
+import { FarmFile, FormFile } from '@/types/farm';
 import { FarmFormData } from '@/types/schemas';
-
-interface FarmFile {
-  id: string;
-  url: string;
-  business_type: string;
-  name: string;
-  type: string;
-  size?: number;
-}
 
 interface UseFarmDataReturn {
   formData: FarmFormData;
@@ -19,8 +11,8 @@ interface UseFarmDataReturn {
   errors: Record<string, string>;
   originalFiles: FarmFile[];
   fetchData: (id: string) => Promise<void>;
-  handleChange: (key: string, value: string | boolean | any) => void;
-  handleImagesChange: (field: 'farm_images' | 'tail_water_images' | 'safety_info', files: { url: string; name: string }[]) => void;
+  handleChange: (key: string, value: string | boolean | FormFile[]) => void;
+  handleImagesChange: (field: 'farm_images' | 'tail_water_images' | 'safety_info', files: FormFile[]) => void;
   handleImageRemove: (field: 'farm_images' | 'tail_water_images' | 'safety_info', index: number) => void;
   setUploading: (value: boolean) => void;
   setErrors: (errors: Record<string, string>) => void;
@@ -70,8 +62,8 @@ export function useFarmData(): UseFarmDataReturn {
       if (farmData) {
         const files: FarmFile[] = [];
         
-        const processFiles = (items: any[], businessType: string) => {
-          items?.forEach((item: any) => {
+        const processFiles = (items: FarmFile[] | undefined, businessType: string) => {
+          items?.forEach((item) => {
             if (item.id) {
               files.push({
                 id: item.id,
@@ -85,23 +77,23 @@ export function useFarmData(): UseFarmDataReturn {
           });
         };
 
-        processFiles(farmData.farm_images, 'farm_images');
-        processFiles(farmData.tail_water_images, 'tail_water_images');
-        processFiles(farmData.safety_info, 'safety_info');
+        processFiles(farmData.farm_images as FarmFile[], 'farm_images');
+        processFiles(farmData.tail_water_images as FarmFile[], 'tail_water_images');
+        processFiles(farmData.safety_info as FarmFile[], 'safety_info');
 
         setOriginalFiles(files);
 
         const formImages = (farmData.farm_images || []).map((item: any) => ({
-          url: item.url,
-          name: item.name,
+          url: typeof item === 'string' ? item : item.url,
+          name: typeof item === 'string' ? item.split('/').pop() || '' : item.name,
         }));
         const formTailWaterImages = (farmData.tail_water_images || []).map((item: any) => ({
-          url: item.url,
-          name: item.name,
+          url: typeof item === 'string' ? item : item.url,
+          name: typeof item === 'string' ? item.split('/').pop() || '' : item.name,
         }));
         const formSafetyInfo = (farmData.safety_info || []).map((item: any) => ({
-          url: item.url,
-          name: item.name,
+          url: typeof item === 'string' ? item : item.url,
+          name: typeof item === 'string' ? item.split('/').pop() || '' : item.name,
         }));
 
         setFormData({
@@ -132,14 +124,14 @@ export function useFarmData(): UseFarmDataReturn {
           safety_info: formSafetyInfo,
         });
       }
-    } catch (e) {
+    } catch (_) {
       setErrors({ fetch: '获取数据失败' });
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const handleChange = useCallback((key: string, value: string | boolean | any) => {
+  const handleChange = useCallback((key: string, value: string | boolean | FormFile[]) => {
     setFormData((prev) => ({
       ...prev,
       [key]: value,
@@ -155,7 +147,7 @@ export function useFarmData(): UseFarmDataReturn {
 
   const handleImagesChange = useCallback((
     field: 'farm_images' | 'tail_water_images' | 'safety_info',
-    files: { url: string; name: string }[]
+    files: FormFile[]
   ) => {
     setFormData((prev) => ({
       ...prev,

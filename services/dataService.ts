@@ -71,7 +71,7 @@ export const dataService = {
         data: cleaned,
         totalCount: count ?? 0
       };
-    } catch (e) {
+    } catch (_) {
       return {
         data: [],
         totalCount: 0,
@@ -93,7 +93,7 @@ export const dataService = {
 
       if (error) return null;
       return data;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   },
@@ -186,7 +186,7 @@ export const dataService = {
         tail_water_images: tailWaterImages,
         safety_info: safetyInfoFiles
       };
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   },
@@ -292,7 +292,7 @@ export const dataService = {
                   .from('files')
                   .delete()
                   .in('id', filesToDelete);
-              } catch (deleteError) {
+              } catch (_) {
               }
             }
             
@@ -302,7 +302,7 @@ export const dataService = {
                 .insert(filesToAdd);
             }
           }
-        } catch (error) {
+        } catch (_) {
         }
       }
 
@@ -318,7 +318,7 @@ export const dataService = {
       }
 
       return null;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   },
@@ -398,7 +398,7 @@ export const dataService = {
           await check.client
             .from('files')
             .insert(allFilesData);
-        } catch (error) {
+        } catch (_) {
         }
       }
 
@@ -414,7 +414,7 @@ export const dataService = {
       }
 
       return null;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   },
@@ -433,7 +433,7 @@ export const dataService = {
         .eq('id', id);
 
       return !error;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }

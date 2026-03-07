@@ -3,12 +3,13 @@ import { z } from 'zod';
 
 import { dataService } from '@/services/dataService';
 import { FarmFormData, farmFormSchema } from '@/types/schemas';
+import { FarmFile, FormFile } from '@/types/farm';
 import { toast } from '@/utils/toast';
 
 interface UseFarmFormOptions {
   initialData?: Partial<FarmFormData>;
   onSuccess?: () => void;
-  originalFiles?: any[];
+  originalFiles?: FarmFile[];
 }
 
 interface UseFarmFormReturn {
@@ -17,13 +18,13 @@ interface UseFarmFormReturn {
   loading: boolean;
   message: string | null;
   messageType: 'success' | 'error' | null;
-  handleChange: (key: string, value: string | boolean | any) => void;
-  handleImagesChange: (field: 'farm_images' | 'tail_water_images' | 'safety_info', files: { url: string; name: string; size?: number }[]) => void;
+  handleChange: (key: string, value: string | boolean | FormFile[]) => void;
+  handleImagesChange: (field: 'farm_images' | 'tail_water_images' | 'safety_info', files: FormFile[]) => void;
   handleImageRemove: (field: 'farm_images' | 'tail_water_images' | 'safety_info', index: number) => void;
   validate: () => boolean;
   submit: (id?: string) => Promise<boolean>;
   resetMessage: () => void;
-  setOriginalFiles: (files: any[]) => void;
+  setOriginalFiles: (files: FarmFile[]) => void;
 }
 
 const defaultFormData: FarmFormData = {
@@ -65,9 +66,9 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<'success' | 'error' | null>(null);
-  const [originalFiles, setOriginalFiles] = useState<any[]>(optionsOriginalFiles || []);
+  const [originalFiles, setOriginalFiles] = useState<FarmFile[]>(optionsOriginalFiles || []);
 
-  const handleChange = useCallback((key: string, value: string | boolean | any) => {
+  const handleChange = useCallback((key: string, value: string | boolean | FormFile[]) => {
     setFormData((prev) => ({
       ...prev,
       [key]: value,
@@ -84,7 +85,7 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
 
   const handleImagesChange = useCallback((
     field: 'farm_images' | 'tail_water_images' | 'safety_info',
-    files: { url: string; name: string; size?: number }[]
+    files: FormFile[]
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -124,7 +125,7 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
     }
   }, [formData]);
 
-  const setOriginalFilesCallback = useCallback((files: any[]) => {
+  const setOriginalFilesCallback = useCallback((files: FarmFile[]) => {
     setOriginalFiles(files);
   }, []);
 
@@ -154,7 +155,7 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
         toast.error('保存失败');
         return false;
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('保存失败');
       return false;
     } finally {

@@ -87,7 +87,7 @@ export function useFarmList(options: UseFarmListOptions = {}): UseFarmListReturn
         // 加载更多：追加数据
         setData(prev => [...prev, ...response.data]);
       }
-    } catch (e) {
+    } catch (_) {
       if (isMountedRef.current) {
         setError('获取数据失败，请稍后重试');
       }

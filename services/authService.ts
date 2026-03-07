@@ -36,14 +36,14 @@ export const authService = {
         try {
           await AsyncStorage.setItem(TOKEN_KEY, 'logged_in');
           await AsyncStorage.setItem(UINFO_KEY, JSON.stringify(data.user ?? {}) );
-        } catch (e) {
+        } catch (_) {
         }
         return { success: true };
       } else {
         return { success: false, error: '邮箱或密码错误' };
       }
-    } catch (e) {
-      return { success: false, error: handleError(e, '登录失败，请稍后重试') };
+    } catch (error) {
+      return { success: false, error: handleError(error, '登录失败，请稍后重试') };
     }
   },
 
@@ -65,8 +65,8 @@ export const authService = {
         return { success: false, error: '发送登录链接失败，请稍后重试' };
       }
       return { success: true };
-    } catch (e) {
-      return { success: false, error: handleError(e, '发送登录链接失败，请稍后重试') };
+    } catch (error) {
+      return { success: false, error: handleError(error, '发送登录链接失败，请稍后重试') };
     }
   },
 
@@ -84,10 +84,10 @@ export const authService = {
       try {
         await AsyncStorage.removeItem(TOKEN_KEY);
         await AsyncStorage.removeItem(UINFO_KEY);
-      } catch (e) {
+      } catch (_) {
       }
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   },
@@ -106,7 +106,7 @@ export const authService = {
       
       const token = await AsyncStorage.getItem(TOKEN_KEY);
       return !!token;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   },
@@ -120,7 +120,7 @@ export const authService = {
     try {
       const { data: { user } } = await check.client.auth.getUser();
       return user;
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
