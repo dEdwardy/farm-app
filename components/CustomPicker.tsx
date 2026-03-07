@@ -55,7 +55,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
         {required && <Text style={styles.requiredMark}>*</Text>}
       </View>
       <TouchableOpacity
-        style={[styles.selectContainer, disabled && styles.disabledSelect]}
+        style={[styles.selectContainer, disabled && styles.disabledSelect, error && styles.selectError]}
         onPress={() => !disabled && setIsVisible(true)}
         disabled={disabled}
       >
@@ -136,6 +136,10 @@ const styles = StyleSheet.create({
   disabledSelect: {
     backgroundColor: '#f5f5f5',
     borderColor: '#e0e0e0',
+  },
+  selectError: {
+    borderColor: '#dc3545',
+    borderWidth: 1,
   },
   selectText: {
     flex: 1,
