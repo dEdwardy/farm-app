@@ -32,7 +32,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       try {
         const currentTheme = await themeService.getCurrentTheme();
         setThemeState(currentTheme);
-      } catch (error) {
+      } catch (_) {
       } finally {
         setIsLoading(false);
       }
@@ -46,7 +46,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     try {
       const newTheme = await themeService.setTheme(themeName);
       setThemeState(newTheme);
-    } catch (error) {
+    } catch (_) {
     }
   };
 

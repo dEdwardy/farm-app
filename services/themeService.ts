@@ -13,7 +13,7 @@ export const themeService = {
         return themes[savedTheme as ThemeName];
       }
       return themes[defaultTheme];
-    } catch (error) {
+    } catch (_) {
       return themes[defaultTheme];
     }
   },
@@ -23,13 +23,13 @@ export const themeService = {
     try {
       await AsyncStorage.setItem(THEME_KEY, themeName);
       return themes[themeName];
-    } catch (error) {
+    } catch (_) {
       return themes[defaultTheme];
     }
   },
 
   // 获取所有可用主题
-  getAvailableThemes(): Array<{ name: ThemeName; displayName: string }> {
+  getAvailableThemes(): { name: ThemeName; displayName: string }[] {
     return [
       { name: 'green', displayName: '绿色主题' },
       { name: 'blue', displayName: '蓝色主题' },
@@ -41,7 +41,7 @@ export const themeService = {
     try {
       await AsyncStorage.removeItem(THEME_KEY);
       return themes[defaultTheme];
-    } catch (error) {
+    } catch (_) {
       return themes[defaultTheme];
     }
   },
