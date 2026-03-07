@@ -6,6 +6,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { authService } from '@/services/authService';
+import { PermissionInfo, permissionService } from '@/services/permissionService';
 import { greenTheme } from '@/styles/themes';
 
 const UINFO_KEY = 'user_info';
@@ -18,9 +19,14 @@ export default function SettingsScreen() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<PermissionInfo[]>([]);
 
   useEffect(() => {
-    fetchUserInfo();
+    const loadData = async () => {
+      await fetchUserInfo();
+      await fetchPermissions();
+    };
+    loadData();
   }, []);
 
   const fetchUserInfo = async () => {
@@ -40,7 +46,7 @@ export default function SettingsScreen() {
         // 如果本地存储中没有用户信息，使用默认值
         setUser({ username: '用户' });
       }
-    } catch (e) {
+    } catch {
       setUser({ username: '用户' });
     } finally {
       setLoading(false);
@@ -52,8 +58,23 @@ export default function SettingsScreen() {
       // 清除登录凭证并跳转到登录页面
       await authService.logout();
       router.replace('/login');
-    } catch (e) {
+    } catch {
     }
+  };
+
+  const fetchPermissions = async () => {
+    try {
+      const permissionList = await permissionService.getAllPermissions();
+      setPermissions(permissionList);
+    } catch (error) {
+      console.error('获取权限状态失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenSettings = async () => {
+    await permissionService.openSettings();
   };
 
   if (loading) {
@@ -102,6 +123,31 @@ export default function SettingsScreen() {
             activeOpacity={0.7}
           >
             <Text style={styles.logoutButtonText}>退出登录</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 权限管理卡片 */}
+        <View style={styles.actionCard}>
+          <Text style={styles.sectionTitle}>权限管理</Text>
+          {permissions.map((permission, index) => (
+            <View key={index} style={styles.permissionItem}>
+              <View style={styles.permissionInfo}>
+                <Text style={styles.permissionName}>{permission.name}</Text>
+                <Text style={styles.permissionDescription}>{permission.description}</Text>
+              </View>
+              <View style={[styles.permissionStatus, { backgroundColor: permission.status === 'granted' ? theme.colors.success + '20' : theme.colors.error + '20' }]}>
+                <Text style={[styles.permissionStatusText, { color: permission.status === 'granted' ? theme.colors.success : theme.colors.error }]}>
+                  {permission.status === 'granted' ? '已授予' : '未授予'}
+                </Text>
+              </View>
+            </View>
+          ))}
+          <TouchableOpacity
+            style={[styles.logoutButton, styles.settingsButton]}
+            onPress={handleOpenSettings}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.logoutButtonText, styles.settingsButtonText]}>前往系统设置</Text>
           </TouchableOpacity>
         </View>
 
@@ -205,4 +251,48 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: theme.fontSize.sm,
   },
+  sectionTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.md,
+  },
+  permissionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  permissionInfo: {
+    flex: 1,
+    marginRight: theme.spacing.md,
+  },
+  permissionName: {
+    fontSize: theme.fontSize.md,
+    fontWeight: '500',
+    color: theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  permissionDescription: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.text.secondary,
+  },
+  permissionStatus: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 4,
+    borderRadius: theme.borderRadius.sm,
+  },
+  permissionStatusText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: '500',
+  },
+  settingsButton: {
+    backgroundColor: theme.colors.primary,
+    marginTop: theme.spacing.md,
+  },
+  settingsButtonText: {
+    color: 'white',
+  }
 });

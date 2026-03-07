@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -90,8 +90,8 @@ export default function EditScreen() {
         // 准备原始文件数据
         const files: OriginalFile[] = [];
         if (Array.isArray(farm_images)) {
-          farm_images.forEach((item: FarmImageData) => {
-            if (item.id) {
+          farm_images.forEach((item) => {
+            if (typeof item !== 'string' && 'id' in item && item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
@@ -103,8 +103,8 @@ export default function EditScreen() {
           });
         }
         if (Array.isArray(tail_water_images)) {
-          tail_water_images.forEach((item: FarmImageData) => {
-            if (item.id) {
+          tail_water_images.forEach((item) => {
+            if (typeof item !== 'string' && 'id' in item && item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
@@ -116,8 +116,8 @@ export default function EditScreen() {
           });
         }
         if (Array.isArray(safety_info)) {
-          safety_info.forEach((item: FarmImageData) => {
-            if (item.id) {
+          safety_info.forEach((item) => {
+            if (typeof item !== 'string' && 'id' in item && item.id) {
               files.push({
                 id: item.id,
                 url: item.url,
@@ -188,12 +188,12 @@ export default function EditScreen() {
     fetchData();
   }, [fetchData]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     const success = await submit(id);
     if (success) {
       // 成功后的逻辑在 onSuccess 中处理
     }
-  };
+  }, [submit, id]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -209,7 +209,7 @@ export default function EditScreen() {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, saving, loading, formData]);
+  }, [navigation, saving, loading, formData, handleSubmit]);
 
   if (loading) {
     return (

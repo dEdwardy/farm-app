@@ -10,7 +10,8 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { createFormStyles } from '../styles/formStyles';
-import { FarmFormData, farmFormSchema } from '../types/schemas';
+import type { FarmRow } from '../types/farm';
+import type { FarmFormData } from '../types/schemas';
 
 interface FarmImageData {
   id?: string;
@@ -20,32 +21,7 @@ interface FarmImageData {
   size?: number;
 }
 
-interface OriginalFile {
-  id: string;
-  url: string;
-  business_type: string;
-  name: string;
-  type: string;
-}
 
-// 将图片/文件数据转换为 OriginalFile 格式
-const processImageFiles = (
-  images: FarmImageData[] | undefined,
-  businessType: string,
-  defaultType: string
-): OriginalFile[] => {
-  if (!Array.isArray(images)) return [];
-  
-  return images
-    .filter((item): item is FarmImageData & { id: string } => !!item.id)
-    .map((item) => ({
-      id: item.id,
-      url: item.url,
-      business_type: businessType,
-      name: item.name,
-      type: item.type || defaultType,
-    }));
-};
 
 // 将图片/文件数据转换为 FormData 格式
 const mapImageData = (
@@ -62,7 +38,7 @@ const mapImageData = (
 };
 
 // 将表单数据转换为提交格式
-const mapFormData = (farmData: any): FarmFormData => {
+const mapFormData = (farmData: FarmRow): FarmFormData => {
   return {
     farm_name: String(farmData.farm_name ?? ''),
     address: String(farmData.address ?? ''),
@@ -92,24 +68,7 @@ const mapFormData = (farmData: any): FarmFormData => {
   };
 };
 
-// 处理 Zod 验证错误，转换为字段错误映射
-const handleValidationError = (error: unknown): Record<string, string> => {
-  if (!(error instanceof Error) || !('issues' in error)) {
-    return { global: '数据更新失败，请稍后重试' };
-  }
-  
-  const fieldErrors: Record<string, string> = {};
-  const issues = (error as any).issues || [];
-  
-  for (const issue of issues) {
-    if (issue.path && issue.path.length > 0) {
-      const fieldName = issue.path[0] as string;
-      fieldErrors[fieldName] = issue.message;
-    }
-  }
-  
-  return fieldErrors;
-};
+
 
 export default function DetailScreen() {
   const router = useRouter();
@@ -146,11 +105,7 @@ export default function DetailScreen() {
     safety_info: [],
   });
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [success, setSuccess] = useState<string | null>(null);
-  
-  const [originalFiles, setOriginalFiles] = useState<OriginalFile[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
@@ -178,18 +133,9 @@ export default function DetailScreen() {
         return;
       }
 
-      // 准备原始文件数据
-      const files: OriginalFile[] = [
-        ...processImageFiles(farmData.farm_images, 'farm_images', 'image'),
-        ...processImageFiles(farmData.tail_water_images, 'tail_water_images', 'image'),
-        ...processImageFiles(farmData.safety_info, 'safety_info', 'file'),
-      ];
-      
-      setOriginalFiles(files);
-      
       // 将获取的数据设置到formData
       setFormData(mapFormData(farmData));
-    } catch (e) {
+    } catch {
       setErrors({ global: '获取数据失败，请稍后重试' });
     } finally {
       setLoading(false);
@@ -199,98 +145,6 @@ export default function DetailScreen() {
   useEffect(() => {
     fetchData();
   }, [id, fetchData]);
-
-  const handleChange = (key: string, value: string | boolean | any) => {
-    setFormData(prev => ({
-      ...prev,
-      [key]: value
-    }));
-    // 清除对应字段的错误
-    if (errors[key]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[key];
-        return newErrors;
-      });
-    }
-  };
-
-  // 处理养殖情况图片上传完成
-  const handleFarmImagesUpload = (files: { url: string; name: string }[]) => {
-    setFormData(prev => ({
-      ...prev,
-      farm_images: files
-    }));
-  };
-
-  // 处理养殖情况图片删除
-  const handleFarmImageRemove = (file: { url: string; name: string }, index: number) => {
-    const updatedFarmImages = [...(formData.farm_images || [])];
-    updatedFarmImages.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      farm_images: updatedFarmImages
-    }));
-  };
-
-  // 处理尾水处理图片上传完成
-  const handleTailWaterImagesUpload = (files: { url: string; name: string }[]) => {
-    setFormData(prev => ({
-      ...prev,
-      tail_water_images: files
-    }));
-  };
-
-  // 处理尾水处理图片删除
-  const handleTailWaterImageRemove = (file: { url: string; name: string }, index: number) => {
-    const updatedTailWaterImages = [...(formData.tail_water_images || [])];
-    updatedTailWaterImages.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      tail_water_images: updatedTailWaterImages
-    }));
-  };
-
-  // 处理安全信息文件上传完成
-  const handleSafetyInfoUpload = (files: { url: string; name: string }[]) => {
-    setFormData(prev => ({
-      ...prev,
-      safety_info: files
-    }));
-  };
-
-  // 处理安全信息文件删除
-  const handleSafetyInfoRemove = (file: { url: string; name: string }, index: number) => {
-    const updatedSafetyInfo = [...(formData.safety_info || [])];
-    updatedSafetyInfo.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      safety_info: updatedSafetyInfo
-    }));
-  };
-
-  const handleSubmit = async () => {
-    setErrors({});
-    setSuccess(null);
-    setLoading(true);
-
-    try {
-      farmFormSchema.parse(formData);
-      const updatedFarm = await dataService.updateFarm(id, formData, originalFiles);
-      
-      if (!updatedFarm) {
-        setErrors({ global: '数据更新失败，请稍后重试' });
-        return;
-      }
-      
-      setFormData(mapFormData(updatedFarm));
-      setSuccess('数据更新成功！');
-    } catch (e) {
-      setErrors(handleValidationError(e));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -455,12 +309,7 @@ export default function DetailScreen() {
           </View>
         )}
 
-        {/* 成功提示 */}
-        {success && (
-          <View style={styles.successContainer}>
-            <Text style={styles.successText}>{success}</Text>
-          </View>
-        )}
+
       </ScrollView>
 
       {/* 底部操作按钮 */}
@@ -502,9 +351,9 @@ export default function DetailScreen() {
               } else {
                 toast.error('删除养殖场信息失败，请稍后重试');
               }
-            } catch (error) {
-              toast.error('删除过程中出现错误，请稍后重试');
-            } finally {
+            } catch {
+          toast.error('删除过程中出现错误，请稍后重试');
+        } finally {
               setLoading(false);
             }
           }, 160);

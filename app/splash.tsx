@@ -14,12 +14,13 @@ const SplashScreenComponent = () => {
   useEffect(() => {
     async function prepare() {
       try {
+        console.log('启动准备开始...');
         // 防止启动页自动隐藏
         await SplashScreen.preventAutoHideAsync();
         // 模拟一些初始化操作
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch (e) {
-        console.warn(e);
+        console.warn('启动准备失败:', e);
       } finally {
         setIsReady(true);
       }
@@ -64,25 +65,20 @@ const SplashScreenComponent = () => {
         ).start();
       });
 
-      // 3秒后跳转到适当的页面
+      // 3秒后隐藏启动屏，让_layout.tsx的路由守卫决定跳转
       const timer = setTimeout(async () => {
         try {
           await SplashScreen.hideAsync();
         } catch (e) {
           console.warn('SplashScreen hide error:', e);
         }
-        try {
-          // 让_layout.tsx的路由逻辑处理跳转
-          // 这里不直接跳转到login，而是让路由守卫决定下一步
-          router.replace('/');
-        } catch (e) {
-          console.warn('Navigation error:', e);
-        }
+        // 不在这里跳转，让_layout.tsx的路由守卫处理
+        // 设置一个标记表示启动屏已完成
       }, 3000);
 
       return () => clearTimeout(timer);
     }
-  }, [isReady]);
+  }, [isReady, fadeAnim, scaleAnim, router, loadingDots]);
 
   return (
     <View style={styles.container}>

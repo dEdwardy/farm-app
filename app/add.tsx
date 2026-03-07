@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import React, { useLayoutEffect } from 'react';
+import React, { useCallback, useLayoutEffect } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,12 +33,12 @@ export default function AddScreen() {
     },
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     const success = await submit();
     if (success) {
       // 成功后的逻辑在 onSuccess 中处理
     }
-  };
+  }, [submit]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -54,7 +54,7 @@ export default function AddScreen() {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, loading, formData]);
+  }, [navigation, loading, formData, handleSubmit]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

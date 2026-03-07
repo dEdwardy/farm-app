@@ -7,17 +7,19 @@ import { AppLogo } from '@/components/AppLogo';
 import { authService } from '@/services/authService';
 import { useTheme } from '../contexts/ThemeContext';
 
+const MIN_INPUT_LENGTH = 6;
+const MAX_INPUT_LENGTH = 18;
 
 export default function LoginScreen() {
   const router = useRouter();
   const { theme } = useTheme();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [autoChecking, setAutoChecking] = useState(true);
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [autoChecking, setAutoChecking] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [rememberPassword, setRememberPassword] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [rememberPassword, setRememberPassword] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -27,8 +29,8 @@ export default function LoginScreen() {
           router.replace('/(tabs)');
           return;
         }
-      } catch (_) {
-        // ignore
+      } catch (error) {
+        console.error('检查登录状态失败:', error);
       } finally {
         setAutoChecking(false);
       }
@@ -37,31 +39,41 @@ export default function LoginScreen() {
     checkToken();
   }, [router]);
 
+  const validateEmail = (emailValue: string): string | null => {
+    if (!emailValue.trim()) {
+      return '请输入邮箱';
+    }
+    if (emailValue.length < MIN_INPUT_LENGTH || emailValue.length > MAX_INPUT_LENGTH) {
+      return `邮箱长度必须在${MIN_INPUT_LENGTH}-${MAX_INPUT_LENGTH}位之间`;
+    }
+    return null;
+  };
+
+  const validatePassword = (passwordValue: string): string | null => {
+    if (!passwordValue.trim()) {
+      return '请输入密码';
+    }
+    if (passwordValue.length < MIN_INPUT_LENGTH || passwordValue.length > MAX_INPUT_LENGTH) {
+      return `密码长度必须在${MIN_INPUT_LENGTH}-${MAX_INPUT_LENGTH}位之间`;
+    }
+    return null;
+  };
+
   const handleLogin = async () => {
     setError(null);
     setLoading(true);
 
     // 表单验证
-    if (!email.trim()) {
-      setError('请输入邮箱');
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setError(emailError);
       setLoading(false);
       return;
     }
 
-    if (!password.trim()) {
-      setError('请输入密码');
-      setLoading(false);
-      return;
-    }
-
-    if (email.length < 6 || email.length > 18) {
-      setError('邮箱长度必须在6-18位之间');
-      setLoading(false);
-      return;
-    }
-
-    if (password.length < 6 || password.length > 18) {
-      setError('密码长度必须在6-18位之间');
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       setLoading(false);
       return;
     }
@@ -74,40 +86,9 @@ export default function LoginScreen() {
       } else {
         setError(response.error || '登录失败，请稍后重试');
       }
-    } catch (e) {
+    } catch (error) {
+      console.error('登录失败:', error);
       setError('登录失败，请稍后重试');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleMagicLinkLogin = async () => {
-    setError(null);
-    setLoading(true);
-
-    // 表单验证
-    if (!email.trim()) {
-      setError('请输入邮箱');
-      setLoading(false);
-      return;
-    }
-
-    if (email.length < 6 || email.length > 18) {
-      setError('邮箱长度必须在6-18位之间');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await authService.loginWithMagicLink(email);
-
-      if (response.success) {
-        setError('登录链接已发送到您的邮箱，请点击链接登录');
-      } else {
-        setError(response.error || '发送登录链接失败，请稍后重试');
-      }
-    } catch (e) {
-      setError('发送登录链接失败，请稍后重试');
     } finally {
       setLoading(false);
     }
@@ -242,7 +223,7 @@ export default function LoginScreen() {
 
 const styles = (theme: any) => StyleSheet.create({
   centerContainer: {
-    flex: 1,
+    flex:1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
@@ -291,21 +272,20 @@ const styles = (theme: any) => StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 1,
+    borderWidth: 1,
     borderColor: theme.colors.border,
-    backgroundColor: 'transparent',
+    borderRadius: theme.borderRadius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: theme.colors.background,
   },
   input: {
     flex: 1,
     fontSize: 16,
     color: theme.colors.text.primary,
-    backgroundColor: 'transparent',
-    paddingVertical: 8,
-    paddingHorizontal: 0,
   },
   togglePassword: {
     padding: 8,
-    marginLeft: 8,
   },
   togglePasswordIcon: {
     fontSize: 20,
@@ -313,28 +293,30 @@ const styles = (theme: any) => StyleSheet.create({
   rememberContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 25,
+    marginBottom: 20,
   },
   rememberText: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
     marginLeft: 8,
+    fontSize: 14,
+    color: theme.colors.text.primary,
   },
   errorContainer: {
-    marginBottom: 15,
-    alignItems: 'center',
+    marginBottom: 20,
+    padding: 12,
+    backgroundColor: theme.colors.error + '15',
+    borderRadius: theme.borderRadius.md,
   },
   errorText: {
-    fontSize: 14,
     color: theme.colors.error,
+    fontSize: 14,
+    textAlign: 'center',
   },
   loginButton: {
-    width: '100%',
-    paddingVertical: 14,
     backgroundColor: theme.colors.primary,
     borderRadius: theme.borderRadius.md,
+    paddingVertical: 14,
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 12,
   },
   registerLink: {
     marginTop: 20,
@@ -346,6 +328,6 @@ const styles = (theme: any) => StyleSheet.create({
   },
   registerButton: {
     color: theme.colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });
