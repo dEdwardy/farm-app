@@ -1,7 +1,7 @@
 import { dataService } from '@/services/dataService';
 
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { ImageGridDisplay, ImagePreview } from '@/components/common';
+import { ImageGridDisplay, ImagePreview, NoData } from '@/components/common';
 import { FileDownloader } from '@/components/upload/FileDownloader';
 import { toast } from '@/utils/toast';
 import { useLocalSearchParams, useRouter } from 'expo-router';
