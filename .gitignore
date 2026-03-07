@@ -3,6 +3,7 @@
 # dependencies
 node_modules/
 .idea/
+.trae/
 # Expo
 .expo/
 dist/
