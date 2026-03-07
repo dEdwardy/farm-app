@@ -27,7 +27,7 @@ export class FileUtils {
   static async ensureDownloadDirectory() {
     try {
       await makeDirectoryAsync(DownloadPath, { intermediates: true });
-    } catch (error) {
+    } catch {
       // 目录已存在时会抛出错误，忽略
     }
   }
@@ -70,7 +70,7 @@ export class FileUtils {
         return true;
       }
       return false;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

@@ -4,7 +4,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FileDownloader } from './FileDownloader';
 import { FileList } from './FileList';
 import { ImageGrid } from './ImageGrid';
@@ -148,7 +148,7 @@ export function UploadComponent({
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      alert('需要相册权限才能选择图片');
+      Alert.alert('需要相册权限才能选择图片');
       return;
     }
 
@@ -211,13 +211,13 @@ export function UploadComponent({
   const processNewFiles = (newFiles: FileItem[]) => {
     const combinedFiles = [...selectedFiles, ...newFiles];
     if (combinedFiles.length > maxFiles) {
-      alert(`最多只能上传 ${maxFiles} 个文件`);
+      Alert.alert(`最多只能上传 ${maxFiles} 个文件`);
       return;
     }
 
     const oversizedFiles = newFiles.filter(file => file.size > maxFileSize);
     if (oversizedFiles.length > 0) {
-      alert(`文件 ${oversizedFiles[0].name} 超过大小限制`);
+      Alert.alert(`文件 ${oversizedFiles[0].name} 超过大小限制`);
       return;
     }
 

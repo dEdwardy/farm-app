@@ -1,4 +1,4 @@
-import type { File } from 'expo-file-system';
+
 
 // 文件项接口
 export interface FileItem {
