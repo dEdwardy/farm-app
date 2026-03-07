@@ -10,6 +10,122 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useFarmForm } from '@/hooks/useFarmForm';
 import { dataService } from '@/services/dataService';
 import { createFormStyles } from '@/styles/formStyles';
+import { FarmFile } from '@/types/farm';
+
+// 类型定义
+interface FarmImageData {
+  id?: string;
+  url: string;
+  name: string;
+  type?: string;
+  size?: number;
+}
+
+interface OriginalFile {
+  id: string;
+  url: string;
+  business_type: string;
+  name: string;
+  type: string;
+}
+
+interface FarmDataFromApi {
+  farm_name?: string;
+  address?: string;
+  longitude_latitude?: string;
+  responsible_person?: string;
+  contact_phone?: string;
+  pond_count?: string;
+  water_area_acre?: string;
+  farm_area_acre?: string;
+  other_water_area_sqm?: string;
+  other_farm_area_acre?: string;
+  avg_water_depth?: string;
+  main_species?: string;
+  farm_mode?: string;
+  operation_status?: string;
+  output?: string;
+  output_value?: string;
+  total_investment?: string;
+  farm_images?: (FarmImageData | string)[];
+  has_treatment_facility?: boolean;
+  treatment_method?: string;
+  treatment_facility_area?: string;
+  treated_discharge_volume?: string;
+  final_destination?: string;
+  tail_water_images?: (FarmImageData | string)[];
+  safety_info?: (FarmImageData | string)[];
+}
+
+// 提取文件处理函数
+function extractOriginalFiles(
+  farmImages: (FarmImageData | string)[],
+  tailWaterImages: (FarmImageData | string)[],
+  safetyInfo: (FarmImageData | string)[]
+): OriginalFile[] {
+  const files: OriginalFile[] = [];
+
+  const processFile = (item: FarmImageData | string, businessType: string, defaultType: string) => {
+    if (typeof item !== 'string' && item.id) {
+      files.push({
+        id: item.id,
+        url: item.url,
+        business_type: businessType,
+        name: item.name,
+        type: item.type || defaultType,
+      });
+    }
+  };
+
+  farmImages?.forEach((item) => processFile(item, 'farm_images', 'image'));
+  tailWaterImages?.forEach((item) => processFile(item, 'tail_water_images', 'image'));
+  safetyInfo?.forEach((item) => processFile(item, 'safety_info', 'file'));
+
+  return files;
+}
+
+// 处理图片数组
+function processImages(images: (FarmImageData | string)[] | undefined): FarmFile[] {
+  if (!Array.isArray(images)) return [];
+
+  return images.map((item) => {
+    if (typeof item === 'string') {
+      return { url: item, name: item.split('/').pop() || '', size: 0 };
+    }
+    return { ...item, size: item.size || 0 };
+  });
+}
+
+// 处理表单数据
+function processFarmData(data: FarmDataFromApi) {
+  return {
+    farm_name: String(data.farm_name ?? ''),
+    address: String(data.address ?? ''),
+    longitude_latitude: String(data.longitude_latitude ?? ''),
+    responsible_person: String(data.responsible_person ?? ''),
+    contact_phone: String(data.contact_phone ?? ''),
+    pond_count: String(data.pond_count ?? ''),
+    water_area_acre: String(data.water_area_acre ?? ''),
+    farm_area_acre: String(data.farm_area_acre ?? ''),
+    other_water_area_sqm: String(data.other_water_area_sqm ?? ''),
+    other_farm_area_acre: String(data.other_farm_area_acre ?? ''),
+    avg_water_depth: String(data.avg_water_depth ?? ''),
+    main_species: String(data.main_species ?? ''),
+    farm_mode: String(data.farm_mode ?? ''),
+    operation_status: String(data.operation_status ?? ''),
+    output: data.output ? String(data.output) : '',
+    output_value: data.output_value ? String(data.output_value) : '',
+    total_investment: data.total_investment ? String(data.total_investment) : '',
+    farm_images: processImages(data.farm_images),
+    has_treatment_facility: Boolean(data.has_treatment_facility ?? false),
+    treatment_method: String(data.treatment_method ?? ''),
+    treatment_facility_area: String(data.treatment_facility_area ?? ''),
+    treated_discharge_volume: String(data.treated_discharge_volume ?? ''),
+    final_destination: String(data.final_destination ?? ''),
+    tail_water_images: processImages(data.tail_water_images),
+    safety_info: processImages(data.safety_info),
+  };
+}
 
 export default function EditScreen() {
   const router = useRouter();
@@ -31,152 +147,32 @@ export default function EditScreen() {
     setOriginalFiles,
   } = useFarmForm({
     onSuccess: () => {
-      // 1秒后返回列表页
       setTimeout(() => {
         router.replace('/');
       }, 1000);
     },
   });
 
-  const fetchData = React.useCallback(async () => {
+  // 加载农场数据
+  const fetchData = useCallback(async () => {
+    if (!id) return;
+
     setLoading(true);
     try {
       const farmData = await dataService.getFarmById(id);
-      if (farmData) {
-        const {
-          farm_name,
-          address,
-          longitude_latitude,
-          responsible_person,
-          contact_phone,
-          pond_count,
-          water_area_acre,
-          farm_area_acre,
-          other_water_area_sqm,
-          other_farm_area_acre,
-          avg_water_depth,
-          main_species,
-          farm_mode,
-          operation_status,
-          output,
-          output_value,
-          total_investment,
-          farm_images,
-          has_treatment_facility,
-          treatment_method,
-          treatment_facility_area,
-          treated_discharge_volume,
-          final_destination,
-          tail_water_images,
-          safety_info,
-        } = farmData;
+      if (!farmData) return;
 
-        interface FarmImageData {
-          id?: string;
-          url: string;
-          name: string;
-          type?: string;
-          size?: number;
-        }
+      const files = extractOriginalFiles(
+        farmData.farm_images || [],
+        farmData.tail_water_images || [],
+        farmData.safety_info || []
+      );
+      setOriginalFiles(files);
 
-        interface OriginalFile {
-          id: string;
-          url: string;
-          business_type: string;
-          name: string;
-          type: string;
-        }
-
-        // 准备原始文件数据
-        const files: OriginalFile[] = [];
-        if (Array.isArray(farm_images)) {
-          farm_images.forEach((item) => {
-            if (typeof item !== 'string' && 'id' in item && item.id) {
-              files.push({
-                id: item.id,
-                url: item.url,
-                business_type: 'farm_images',
-                name: item.name,
-                type: item.type || 'image'
-              });
-            }
-          });
-        }
-        if (Array.isArray(tail_water_images)) {
-          tail_water_images.forEach((item) => {
-            if (typeof item !== 'string' && 'id' in item && item.id) {
-              files.push({
-                id: item.id,
-                url: item.url,
-                business_type: 'tail_water_images',
-                name: item.name,
-                type: item.type || 'image'
-              });
-            }
-          });
-        }
-        if (Array.isArray(safety_info)) {
-          safety_info.forEach((item) => {
-            if (typeof item !== 'string' && 'id' in item && item.id) {
-              files.push({
-                id: item.id,
-                url: item.url,
-                business_type: 'safety_info',
-                name: item.name,
-                type: item.type || 'file'
-              });
-            }
-          });
-        }
-        setOriginalFiles(files);
-
-        const processedData = {
-          farm_name: String(farm_name ?? ''),
-          address: String(address ?? ''),
-          longitude_latitude: String(longitude_latitude ?? ''),
-          responsible_person: String(responsible_person ?? ''),
-          contact_phone: String(contact_phone ?? ''),
-          pond_count: String(pond_count ?? ''),
-          water_area_acre: String(water_area_acre ?? ''),
-          farm_area_acre: String(farm_area_acre ?? ''),
-          other_water_area_sqm: String(other_water_area_sqm ?? ''),
-          other_farm_area_acre: String(other_farm_area_acre ?? ''),
-          avg_water_depth: String(avg_water_depth ?? ''),
-          main_species: String(main_species ?? ''),
-          farm_mode: String(farm_mode ?? ''),
-          operation_status: String(operation_status ?? ''),
-          output: output ? String(output) : '',
-          output_value: output_value ? String(output_value) : '',
-          total_investment: total_investment ? String(total_investment) : '',
-          farm_images: Array.isArray(farm_images) ? farm_images.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '', size: 0 };
-            }
-            return { ...item, size: item.size || 0 };
-          }) : [],
-          has_treatment_facility: Boolean(has_treatment_facility ?? false),
-          treatment_method: String(treatment_method ?? ''),
-          treatment_facility_area: String(treatment_facility_area ?? ''),
-          treated_discharge_volume: String(treated_discharge_volume ?? ''),
-          final_destination: String(final_destination ?? ''),
-          tail_water_images: Array.isArray(tail_water_images) ? tail_water_images.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '', size: 0 };
-            }
-            return { ...item, size: item.size || 0 };
-          }) : [],
-          safety_info: Array.isArray(safety_info) ? safety_info.map((item: FarmImageData | string) => {
-            if (typeof item === 'string') {
-              return { url: item, name: item.split('/').pop() || '', size: 0 };
-            }
-            return { ...item, size: item.size || 0 };
-          }) : [],
-        };
-
-        Object.keys(processedData).forEach(key => {
-          handleChange(key, processedData[key as keyof typeof processedData]);
-        });
-      }
+      const processedData = processFarmData(farmData);
+      Object.entries(processedData).forEach(([key, value]) => {
+        handleChange(key, value);
+      });
     } catch (e) {
       console.error('获取数据失败:', e);
     } finally {
