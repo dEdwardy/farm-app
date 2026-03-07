@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey =
@@ -18,9 +20,6 @@ export async function getSupabase(): Promise<SupabaseClient | null> {
   if (supabaseInitError) return null;
 
   _initPromise = (async () => {
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    const { createClient } = require('@supabase/supabase-js');
-
     _supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
       auth: {
         storage: AsyncStorage,

@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { theme } from './theme';
 import { Theme } from './themes';
 
 // 表单样式生成器
@@ -353,6 +354,5 @@ export const createFormStyles = (theme: Theme) => StyleSheet.create({
 });
 
 // 导出默认样式（使用当前主题）
-import { theme } from './theme';
 export const formStyles = createFormStyles(theme);
 
