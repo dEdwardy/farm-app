@@ -10,9 +10,13 @@ config.transformer = {
     ...config.transformer.minifierConfig,
     compress: {
       ...config.transformer.minifierConfig?.compress,
-      // drop_console: true,
+      drop_console: true,
+      drop_debugger: true,
     },
   },
 };
+
+// Optimize asset handling
+config.resolver.assetExts = config.resolver.assetExts.filter(ext => ext !== 'md');
 
 module.exports = config;
