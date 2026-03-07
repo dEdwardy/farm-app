@@ -2,8 +2,8 @@ import { useCallback, useState } from 'react';
 import { z } from 'zod';
 
 import { dataService } from '@/services/dataService';
-import { FarmFormData, farmFormSchema } from '@/types/schemas';
 import { FarmFile, FormFile } from '@/types/farm';
+import { FarmFormData, farmFormSchema } from '@/types/schemas';
 import { toast } from '@/utils/toast';
 
 interface UseFarmFormOptions {
@@ -139,12 +139,20 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
     setLoading(true);
     setMessage(null);
 
+    // 将可选数值字段的空字符串转换为 null
+    const submitData = {
+      ...formData,
+      output: formData.output || null,
+      output_value: formData.output_value || null,
+      total_investment: formData.total_investment || null,
+    };
+
     try {
       let result;
       if (id) {
-        result = await dataService.updateFarm(id, formData, originalFiles);
+        result = await dataService.updateFarm(id, submitData, originalFiles);
       } else {
-        result = await dataService.addFarm(formData);
+        result = await dataService.addFarm(submitData);
       }
 
       if (result) {

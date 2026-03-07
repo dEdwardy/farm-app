@@ -145,9 +145,9 @@ export default function EditScreen() {
           main_species: String(main_species ?? ''),
           farm_mode: String(farm_mode ?? ''),
           operation_status: String(operation_status ?? ''),
-          output: String(output ?? ''),
-          output_value: String(output_value ?? ''),
-          total_investment: String(total_investment ?? ''),
+          output: output ? String(output) : null,
+          output_value: output_value ? String(output_value) : null,
+          total_investment: total_investment ? String(total_investment) : null,
           farm_images: Array.isArray(farm_images) ? farm_images.map((item: FarmImageData | string) => {
             if (typeof item === 'string') {
               return { url: item, name: item.split('/').pop() || '', size: 0 };
