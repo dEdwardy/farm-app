@@ -1,8 +1,7 @@
 import { toast } from '@/utils/toast';
-import { useCallback } from 'react';
 import { useOssUpload } from '../hooks/useOssUpload';
 import { UploadComponent } from './upload';
-import type { FileInfo, FileItem, FileStatusChangeCallback } from './upload/types';
+import type { FileInfo, FileItem, FileStatusChangeCallback, ImageCompressionConfig } from './upload/types';
 
 interface OssUploadProps {
   onUploadComplete: (files: { url: string; name: string; size: number }[]) => void;
@@ -17,6 +16,7 @@ interface OssUploadProps {
   previewType?: 'list' | 'picture';
   initialFiles?: (string | FileInfo)[];
   loading?: boolean;
+  imageCompression?: ImageCompressionConfig;
 }
 
 export function OssUpload({ 
@@ -31,14 +31,15 @@ export function OssUpload({
   uploadType = 'file',
   previewType,
   initialFiles = [],
-  loading = false
+  loading = false,
+  imageCompression = { enabled: true, quality: 0.8 }
 }: OssUploadProps) {
   const { uploading, uploadFiles } = useOssUpload();
   
   // 默认不限制数量，除非显式指定
   const effectiveMaxFiles = maxFiles ?? Number.MAX_VALUE;
 
-  const handleUploadComplete = useCallback(async (
+  const handleUploadComplete = async (
     files: FileItem[], 
     onFileStatusChange?: FileStatusChangeCallback
   ) => {
@@ -50,14 +51,14 @@ export function OssUpload({
       const allFiles = await uploadFiles(files, onFileStatusChange);
       onUploadComplete(allFiles);
     } catch (error: any) {
+      console.error('上传失败:', error);
       toast.error(error?.message || '上传失败，请稍后重试');
-      throw error;
     } finally {
       onUploading?.(false);
     }
-  }, [loading, onUploadComplete, onUploading, uploadFiles]);
+  };
 
-  const handleFileRemove = useCallback((file: FileItem, index: number) => {
+  const handleFileRemove = (file: FileItem, index: number) => {
     if (loading) return;
     
     onFileRemove?.({
@@ -65,7 +66,7 @@ export function OssUpload({
       name: file.name,
       size: file.size
     }, index);
-  }, [loading, onFileRemove]);
+  };
 
   return (
     <UploadComponent
@@ -80,6 +81,7 @@ export function OssUpload({
       uploadType={uploadType}
       previewType={previewType}
       initialFiles={initialFiles}
+      imageCompression={imageCompression}
     />
   );
 }
