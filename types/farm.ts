@@ -37,7 +37,7 @@ export interface FarmBreedingInfo {
   avg_water_depth?: string;
   main_species?: string;
   farm_mode?: string;
-  operation_status?: string;
+  operation_status?: string | null;
   output?: string;
   output_value?: string;
   total_investment?: string;
@@ -46,10 +46,10 @@ export interface FarmBreedingInfo {
 // 尾水处理信息
 export interface FarmTreatmentInfo {
   has_treatment_facility?: boolean;
-  treatment_method?: string;
+  treatment_method?: string | null;
   treatment_facility_area?: string;
   treated_discharge_volume?: string;
-  final_destination?: string;
+  final_destination?: string | null;
 }
 
 // 完整养殖场数据
