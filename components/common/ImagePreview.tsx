@@ -12,6 +12,7 @@ import {
     View,
     ViewToken,
 } from 'react-native';
+import { FileDownloader } from '../upload/FileDownloader';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -119,7 +120,15 @@ export function ImagePreview({ visible, images, initialIndex = 0, onClose }: Ima
             <Text style={styles.counter}>
               {currentIndex + 1} / {images.length}
             </Text>
-            <View style={styles.placeholder} />
+            {/* 只有已上传的图片才显示分享按钮 */}
+            {images[currentIndex]?.url?.startsWith('http') ? (
+              <FileDownloader
+                fileUrl={images[currentIndex].url}
+                fileName={images[currentIndex]?.name || `image_${currentIndex}.jpg`}
+              />
+            ) : (
+              <View style={styles.placeholder} />
+            )}
           </View>
 
           <FlatList
