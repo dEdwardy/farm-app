@@ -1,8 +1,10 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
+import { HighlightText } from '@/components/common/HighlightText';
 import { FarmRow } from '@/services/dataService';
 import { indexStyles } from '@/styles/indexStyles';
+import { formatPhone } from '@/utils/format';
 
 interface FarmCardProps {
   farm: FarmRow;
@@ -10,39 +12,10 @@ interface FarmCardProps {
   onPress: (farm: FarmRow) => void;
 }
 
-// 高亮显示搜索关键词
-const HighlightText: React.FC<{ text: string; keyword: string }> = React.memo(({ text, keyword }) => {
-  if (!keyword || !text) return <>{text}</>;
-
-  const parts = text.split(new RegExp(`(${keyword})`, 'gi'));
-  return (
-    <>
-      {parts.map((part, index) => {
-        if (part.toLowerCase() === keyword.toLowerCase()) {
-          return (
-            <Text key={index} style={indexStyles.highlight}>
-              {part}
-            </Text>
-          );
-        }
-        return <Text key={index}>{part}</Text>;
-      })}
-    </>
-  );
-});
-
-HighlightText.displayName = 'HighlightText';
-
 export const FarmCard: React.FC<FarmCardProps> = React.memo(({ farm, searchQuery, onPress }) => {
   const handlePress = React.useCallback(() => {
     onPress(farm);
   }, [farm, onPress]);
-
-  // 格式化电话号码（隐私保护）
-  const formatPhone = React.useCallback((phone?: string) => {
-    if (!phone) return '-';
-    return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
-  }, []);
 
   const infoItems = React.useMemo(() => [
     { label: '负责人', value: farm.responsible_person || '-' },
@@ -64,11 +37,13 @@ export const FarmCard: React.FC<FarmCardProps> = React.memo(({ farm, searchQuery
         <Text style={indexStyles.farmName} numberOfLines={1}>
           <HighlightText text={farm.farm_name} keyword={searchQuery} />
         </Text>
-        <View style={indexStyles.farmTypeBadge}>
-          <Text style={indexStyles.farmTypeBadgeText}>
-            {farm.farm_mode}
-          </Text>
-        </View>
+        {farm.farm_mode && (
+          <View style={indexStyles.farmTypeBadge}>
+            <Text style={indexStyles.farmTypeBadgeText}>
+              {farm.farm_mode}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* 地址 */}
