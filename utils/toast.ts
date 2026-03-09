@@ -11,19 +11,19 @@ export interface ToastOptions {
 
 export const toast = {
   success: (message: string, title?: string, position: 'top' | 'center' | 'bottom' = 'top') => {
-    Toast.success(title || '成功', position);
+    Toast.success(message, position);
   },
 
   error: (message: string, title?: string, position: 'top' | 'center' | 'bottom' = 'top') => {
-    Toast.error(title || '错误', position);
+    Toast.error(message, position);
   },
 
   info: (message: string, title?: string, position: 'top' | 'center' | 'bottom' = 'top') => {
-    Toast.info(title || '提示', position);
+    Toast.info(message, position);
   },
 
   warning: (message: string, title?: string, position: 'top' | 'center' | 'bottom' = 'top') => {
-    Toast.warn(title || '警告', position);
+    Toast.warn(message, position);
   },
 
   show: (options: ToastOptions) => {
