@@ -30,28 +30,29 @@ interface UseFarmFormReturn {
 
 const defaultFormData: FarmFormData = {
   farm_name: '',
-  address: '',
-  longitude_latitude: '',
-  responsible_person: '',
-  contact_phone: '',
-  pond_count: '',
-  water_area_acre: '',
-  farm_area_acre: '',
-  other_water_area_sqm: '',
-  other_farm_area_acre: '',
-  avg_water_depth: '',
-  main_species: '',
-  farm_mode: '',
-  operation_status: '',
-  output: '',
-  output_value: '',
-  total_investment: '',
+  address: undefined,
+  longitude_latitude: undefined,
+  responsible_person: undefined,
+  contact_phone: undefined,
+  // 数值字段使用 undefined 作为初始值，避免 bigint 类型错误
+  pond_count: undefined,
+  water_area_acre: undefined,
+  farm_area_acre: undefined,
+  other_water_area_sqm: undefined,
+  other_farm_area_acre: undefined,
+  avg_water_depth: undefined,
+  main_species: undefined,
+  farm_mode: undefined,
+  operation_status: undefined,
+  output: undefined,
+  output_value: undefined,
+  total_investment: undefined,
   farm_images: [],
   has_treatment_facility: false,
-  treatment_method: '',
-  treatment_facility_area: '',
-  treated_discharge_volume: '',
-  final_destination: '',
+  treatment_method: undefined,
+  treatment_facility_area: undefined,
+  treated_discharge_volume: undefined,
+  final_destination: undefined,
   tail_water_images: [],
   safety_info: [],
 };
@@ -153,6 +154,7 @@ export function useFarmForm(options: UseFarmFormOptions = {}): UseFarmFormReturn
       if (id) {
         result = await dataService.updateFarm(id, submitData, originalFiles);
       } else {
+        console.log('submitData', submitData);
         result = await dataService.addFarm(submitData);
       }
 

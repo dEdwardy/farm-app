@@ -1,6 +1,6 @@
+import type { FarmFile, FarmRow, PaginatedResponse, PaginationParams } from '@/types/farm';
 import { checkSupabase } from '@/utils/apiHelper';
 import { logger } from '@/utils/logger';
-import type { FarmFile, FarmRow, PaginatedResponse, PaginationParams } from '@/types/farm';
 
 export type { FarmFile, FarmRow, PaginatedResponse, PaginationParams };
 
@@ -201,7 +201,20 @@ export const dataService = {
     try {
       const { farm_images, tail_water_images, safety_info, ...farmData } = data;
       
-      const updateData = { ...farmData };
+      // 将空字符串或 undefined 的数值字段转换为 null，避免 bigint 类型错误
+      const numericFields = [
+        'pond_count', 'water_area_acre', 'farm_area_acre',
+        'other_water_area_sqm', 'other_farm_area_acre', 'avg_water_depth',
+        'output', 'output_value', 'total_investment',
+        'treatment_facility_area', 'treated_discharge_volume'
+      ];
+      
+      const updateData: any = { ...farmData };
+      numericFields.forEach((field) => {
+        if (updateData[field] === '' || updateData[field] === undefined || updateData[field] === null) {
+          updateData[field] = null;
+        }
+      });
 
       const { data: updatedFarm, error: updateError } = await check.client
         .from('aquaculture_farms')
@@ -335,7 +348,20 @@ export const dataService = {
     try {
       const { farm_images, tail_water_images, safety_info, ...farmData } = data;
       
-      const insertData = { ...farmData };
+      // 将空字符串或 undefined 的数值字段转换为 null，避免 bigint 类型错误
+      const numericFields = [
+        'pond_count', 'water_area_acre', 'farm_area_acre',
+        'other_water_area_sqm', 'other_farm_area_acre', 'avg_water_depth',
+        'output', 'output_value', 'total_investment',
+        'treatment_facility_area', 'treated_discharge_volume'
+      ];
+      
+      const insertData: any = { ...farmData };
+      numericFields.forEach((field) => {
+        if (insertData[field] === '' || insertData[field] === undefined || insertData[field] === null) {
+          insertData[field] = null;
+        }
+      });
 
       const { data: insertedFarm, error } = await check.client
         .from('aquaculture_farms')
