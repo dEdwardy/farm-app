@@ -6,7 +6,7 @@ import { FileDownloader } from '@/components/upload/FileDownloader';
 import { formatDisplayValue, formatValueWithUnit } from '@/utils/format';
 import { toast } from '@/utils/toast';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
@@ -78,7 +78,7 @@ export default function DetailScreen() {
   const params = useLocalSearchParams();
   const id = params.id as string;
   const { theme } = useTheme();
-  const styles = createFormStyles(theme);
+  const styles = useMemo(() => createFormStyles(theme), [theme]);
 
   const [formData, setFormData] = useState<FarmFormData>({
     farm_name: '',
@@ -94,16 +94,16 @@ export default function DetailScreen() {
     avg_water_depth: '',
     main_species: '',
     farm_mode: '',
-    operation_status: '',
+    operation_status: undefined,
     output: '',
     output_value: '',
     total_investment: '',
     farm_images: [],
     has_treatment_facility: false,
-    treatment_method: '',
+    treatment_method: undefined,
     treatment_facility_area: '',
     treated_discharge_volume: '',
-    final_destination: '',
+    final_destination: undefined,
     tail_water_images: [],
     safety_info: [],
   });
