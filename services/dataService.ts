@@ -1,6 +1,7 @@
 import type { FarmFile, FarmRow, PaginatedResponse, PaginationParams } from '@/types/farm';
 import { checkSupabase } from '@/utils/apiHelper';
 import { logger } from '@/utils/logger';
+import { toast } from '../utils/toast';
 
 export type { FarmFile, FarmRow, PaginatedResponse, PaginationParams };
 
@@ -72,7 +73,8 @@ export const dataService = {
         data: cleaned,
         totalCount: count ?? 0
       };
-    } catch (_) {
+    } catch (error) {
+      console.error('getFarms 错误:', error);
       return {
         data: [],
         totalCount: 0,
@@ -93,8 +95,9 @@ export const dataService = {
         .single();
 
       if (error) return null;
-      return data;
-    } catch (_) {
+      return data as FarmRow;
+    } catch (error) {
+      console.error('getUserInfo 错误:', error);
       return null;
     }
   },
@@ -167,7 +170,16 @@ export const dataService = {
       const tailWaterImages: { id: string; url: string; name: string; type: string; size: number }[] = [];
       const safetyInfoFiles: { id: string; url: string; name: string; type: string; size: number }[] = [];
 
-      data.files?.forEach((file: any) => {
+      interface FileData {
+        id: string;
+        url: string;
+        business_type: string;
+        type: string;
+        name: string;
+        size?: number;
+      }
+      
+      data.files?.forEach((file: FileData) => {
         switch (file.business_type) {
           case 'farm_images':
             farmImages.push({ id: file.id, url: file.url, name: file.name, type: file.type, size: file.size || 0 });
@@ -194,12 +206,15 @@ export const dataService = {
     }
   },
 
-  async updateFarm(id: string, data: FarmRow, existingFiles?: any[]): Promise<FarmRow | null> {
+  async updateFarm(id: string, data: FarmRow, existingFiles?: FarmFile[]): Promise<FarmRow | null> {
     const check = await checkSupabase();
-    if (!check.ok) return null;
+    if (!check.ok) {
+      toast.error('连接失败，请检查网络');
+      return null;
+    }
 
     try {
-      const { farm_images, tail_water_images, safety_info, ...farmData } = data;
+      const { farm_images, tail_water_images, safety_info, created_at, updated_at, ...farmData } = data;
       
       // 将空字符串或 undefined 的数值字段转换为 null，避免 bigint 类型错误
       const numericFields = [
@@ -209,12 +224,30 @@ export const dataService = {
         'treatment_facility_area', 'treated_discharge_volume'
       ];
       
+      // 处理 enum 类型字段，确保空值正确处理
+      const enumFields = [
+        'operation_status', 'treatment_method', 'final_destination'
+      ];
+      
       const updateData: any = { ...farmData };
+      
+      // 处理数值字段
       numericFields.forEach((field) => {
         if (updateData[field] === '' || updateData[field] === undefined || updateData[field] === null) {
           updateData[field] = null;
         }
       });
+      
+      // 处理 enum 类型字段
+      enumFields.forEach((field) => {
+        if (updateData[field] === '' || updateData[field] === undefined) {
+          updateData[field] = null;
+        }
+      });
+
+      // 打印updateData，查看是否包含所有需要更新的字段
+      console.log('updateData:', updateData);
+      console.log('id:', id);
 
       const { data: updatedFarm, error: updateError } = await check.client
         .from('aquaculture_farms')
@@ -223,7 +256,15 @@ export const dataService = {
         .select()
         .single();
 
-      if (updateError) return null;
+      // 打印更新结果
+      console.log('updatedFarm:', updatedFarm);
+      console.log('updateError:', updateError);
+
+      if (updateError) {
+        logger.error('dataService', '更新农场失败:', updateError);
+        toast.error('更新数据失败，请稍后重试');
+        return null;
+      }
 
       const fileGroups = {
         farm_images: {
@@ -254,23 +295,32 @@ export const dataService = {
               .eq('farm_id', id);
             
             if (!queryError) {
-              filesData = dbFiles;
+              filesData = dbFiles as FarmFile[];
             }
           }
           
           if (filesData) {
-            const existingFileMap = new Map<string, any>();
+            const existingFileMap = new Map<string, FarmFile>();
             filesData.forEach(file => {
               existingFileMap.set(file.url, file);
             });
             
-            const allFilesData: { farm_id: string; url: string; name: string; business_type: string; type: string; size: number; }[] = [];
+            interface FileData {
+              farm_id: string;
+              url: string;
+              name: string;
+              business_type: string;
+              type: string;
+              size: number;
+            }
+            
+            const allFilesData: FileData[] = [];
             
             Object.values(fileGroups).forEach(group => {
               const { files, businessType, defaultType } = group;
               
               if (Array.isArray(files) && files.length > 0) {
-                files.forEach((file: any) => {
+                files.forEach((file: string | { url: string; name: string; type?: string; size?: number }) => {
                   const url = typeof file === 'string' ? file : file.url;
                   const name = typeof file === 'string' ? url.split('/').pop() || '' : file.name;
                   const type = typeof file === 'string' ? defaultType : file.type || defaultType;
@@ -290,7 +340,7 @@ export const dataService = {
             const filesToDelete: string[] = [];
             existingFileMap.forEach((file) => {
               const existsInNew = allFilesData.some(newFile => newFile.url === file.url);
-              if (!existsInNew) {
+              if (!existsInNew && file.id) {
                 filesToDelete.push(file.id);
               }
             });
@@ -310,17 +360,24 @@ export const dataService = {
                     .in('id', filesToDelete);
                 } catch (error) {
                   logger.error('dataService', '删除文件失败:', error);
+                  toast.error('更新文件失败，请稍后重试');
                 }
               }
               
               if (filesToAdd.length > 0) {
-                await check.client
-                  .from('files')
-                  .insert(filesToAdd);
+                try {
+                  await check.client
+                    .from('files')
+                    .insert(filesToAdd);
+                } catch (error) {
+                  logger.error('dataService', '添加文件失败:', error);
+                  toast.error('更新文件失败，请稍后重试');
+                }
               }
             }
           } catch (error) {
             logger.error('dataService', '更新文件失败:', error);
+            toast.error('更新文件失败，请稍后重试');
           }
       }
 
@@ -336,7 +393,9 @@ export const dataService = {
       }
 
       return null;
-    } catch (_) {
+    } catch (error) {
+      logger.error('dataService', '更新农场信息失败:', error);
+      toast.error('更新农场信息失败，请稍后重试');
       return null;
     }
   },
