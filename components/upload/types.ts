@@ -23,6 +23,15 @@ export interface FileInfo {
 // 文件状态变更回调类型
 export type FileStatusChangeCallback = (fileId: string, status: FileItem['status'], progress?: number) => void;
 
+// 图片压缩配置接口
+export interface ImageCompressionConfig {
+  enabled: boolean; // 是否启用压缩
+  quality?: number; // 压缩质量 (0-1)
+  maxWidth?: number; // 最大宽度
+  maxHeight?: number; // 最大高度
+  compressionMethod?: 'auto' | 'manual'; // 压缩方法
+}
+
 // 上传组件属性接口
 export interface UploadComponentProps {
   onUploadComplete: (files: FileItem[], onFileStatusChange?: FileStatusChangeCallback) => void;
@@ -39,6 +48,7 @@ export interface UploadComponentProps {
   uploadType?: 'image' | 'file'; // image: 图片上传, file: 文件上传
   previewType?: 'list' | 'picture'; // list: 列表模式, picture: 九宫格模式
   initialFiles?: (string | FileInfo)[]; // 初始文件URL数组或FileInfo数组
+  imageCompression?: ImageCompressionConfig; // 图片压缩配置
 }
 
 // 文件列表属性接口

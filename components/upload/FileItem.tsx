@@ -58,7 +58,6 @@ const getStatusIcon = (status: string) => {
 };
 
 export function FileItemComponent({ file, disabled, loading, onRemove }: FileItemProps) {
-  const isUploading = file.status === 'uploading';
 
   return (
     <TouchableOpacity 
