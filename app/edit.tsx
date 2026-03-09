@@ -256,7 +256,6 @@ export default function EditScreen() {
             <OssUpload
               onUploadComplete={(files) => handleImagesChange('farm_images', files)}
               onFileRemove={(_, index) => handleImageRemove('farm_images', index)}
-              maxFiles={5}
               uploadType="image"
               previewType="picture"
               initialFiles={formData.farm_images || []}
@@ -289,7 +288,6 @@ export default function EditScreen() {
                 <OssUpload
                   onUploadComplete={(files) => handleImagesChange('tail_water_images', files)}
                   onFileRemove={(_, index) => handleImageRemove('tail_water_images', index)}
-                  maxFiles={5}
                   uploadType="image"
                   previewType="picture"
                   initialFiles={formData.tail_water_images || []}
@@ -309,7 +307,6 @@ export default function EditScreen() {
             <OssUpload
               onUploadComplete={(files) => handleImagesChange('safety_info', files)}
               onFileRemove={(_, index) => handleImageRemove('safety_info', index)}
-              maxFiles={5}
               uploadType="file"
               previewType="list"
               initialFiles={formData.safety_info || []}
