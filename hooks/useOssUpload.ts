@@ -1,5 +1,5 @@
 import { FileSystemUploadType, uploadAsync } from 'expo-file-system/legacy';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import type { FileItem, FileStatusChangeCallback } from '../components/upload/types';
 import { getOssPresignedUrl } from '../services/ossService';
 import { getContentTypeByExtension, getFileUrl } from '../utils/fileUtils';
@@ -12,7 +12,7 @@ interface UseOssUploadResult {
 export function useOssUpload(): UseOssUploadResult {
   const [uploading, setUploading] = useState(false);
 
-  const uploadFiles = useCallback(async (
+  const uploadFiles = async (
     files: FileItem[],
     onFileStatusChange?: FileStatusChangeCallback
   ): Promise<{ url: string; name: string; size: number }[]> => {
@@ -72,7 +72,7 @@ export function useOssUpload(): UseOssUploadResult {
     } finally {
       setUploading(false);
     }
-  }, []);
+  };
 
   return { uploading, uploadFiles };
 }

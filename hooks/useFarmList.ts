@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 import { dataService, FarmRow, PaginationParams } from '@/services/dataService';
 
@@ -43,6 +43,7 @@ export function useFarmList(options: UseFarmListOptions = {}): UseFarmListReturn
       isMountedRef.current = false;
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
       }
     };
   }, []);
@@ -133,7 +134,7 @@ export function useFarmList(options: UseFarmListOptions = {}): UseFarmListReturn
       searchQuery: searchQuery.trim(),
       isLoadMore: true,
     });
-  }, [fetchData, page, pageSize, searchQuery, loadingMore, hasMore]);
+  }, [fetchData, pageSize, searchQuery, loadingMore, hasMore, page]);
 
   // 搜索（带防抖）
   const search = useCallback(async (query: string) => {
@@ -151,7 +152,7 @@ export function useFarmList(options: UseFarmListOptions = {}): UseFarmListReturn
         searchQuery: query.trim(),
       });
     }, debounceMs);
-  }, [fetchData, pageSize, debounceMs]);
+  }, [debounceMs, pageSize, fetchData]);
 
   // 标记是否已经初始加载
   const hasInitialLoadedRef = useRef(false);
@@ -162,7 +163,7 @@ export function useFarmList(options: UseFarmListOptions = {}): UseFarmListReturn
       hasInitialLoadedRef.current = true;
       loadInitial();
     }
-  }, [loadInitial]);
+  }, []); // 移除 loadInitial 依赖，因为只需要执行一次
 
   return {
     data,
