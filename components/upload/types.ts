@@ -20,17 +20,22 @@ export interface FileInfo {
   size?: number;
 }
 
+// 文件状态变更回调类型
+export type FileStatusChangeCallback = (fileId: string, status: FileItem['status'], progress?: number) => void;
+
 // 上传组件属性接口
 export interface UploadComponentProps {
-  onUploadComplete: (files: FileItem[]) => void;
+  onUploadComplete: (files: FileItem[], onFileStatusChange?: FileStatusChangeCallback) => void;
   onFileRemove?: (file: FileItem, index: number) => void;
   onProgress?: (file: FileItem, progress: number) => void;
   onSuccess?: (file: FileItem) => void;
+  onFileStatusChange?: FileStatusChangeCallback; // 文件状态变更回调
   maxFiles?: number;
   maxFileSize?: number; // 单位：字节
   autoUpload?: boolean;
   capture?: boolean;
   disabled?: boolean;
+  loading?: boolean; // 全局loading状态
   uploadType?: 'image' | 'file'; // image: 图片上传, file: 文件上传
   previewType?: 'list' | 'picture'; // list: 列表模式, picture: 九宫格模式
   initialFiles?: (string | FileInfo)[]; // 初始文件URL数组或FileInfo数组
@@ -40,6 +45,7 @@ export interface UploadComponentProps {
 export interface FileListProps {
   files: FileItem[];
   disabled: boolean;
+  loading?: boolean;
   onFileRemove?: (file: FileItem, index: number) => void;
 }
 
@@ -47,6 +53,7 @@ export interface FileListProps {
 export interface ImageGridProps {
   files: FileItem[];
   disabled: boolean;
+  loading?: boolean;
   maxFiles: number;
   onAddPress: () => void;
   onFileRemove?: (file: FileItem, index: number) => void;
@@ -57,6 +64,7 @@ export interface ImageGridProps {
 export interface FileItemProps {
   file: FileItem;
   disabled: boolean;
+  loading?: boolean;
   onRemove?: (file: FileItem) => void;
 }
 
@@ -64,6 +72,7 @@ export interface FileItemProps {
 export interface ImageItemProps {
   file: FileItem;
   disabled: boolean;
+  loading?: boolean;
   onRemove?: (file: FileItem) => void;
   onImagePress: (uri: string) => void;
 }

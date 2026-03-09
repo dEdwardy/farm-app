@@ -2,23 +2,27 @@ import { theme } from '@/styles/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { FileDownloader } from './FileDownloader';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ImageItemProps } from './types';
 
 export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemProps) {
   console.log('[ImageItem] 渲染 file:', file);
-  const isUploaded = file.status === 'success' && file.uri.startsWith('http');
-  console.log('[ImageItem] isUploaded:', isUploaded, 'uri:', file.uri, 'startsWith http:', file.uri.startsWith('http'));
-  const showShare = disabled && isUploaded;
+  const isUploading = file.status === 'uploading';
   const [imageError, setImageError] = React.useState(false);
+
+  const handleImagePress = () => {
+    // 上传中不允许预览
+    if (isUploading) return;
+    onImagePress(file.uri);
+  };
 
   return (
     <>
       <TouchableOpacity 
         style={styles.imageContainer}
-        onPress={() => onImagePress(file.uri)}
+        onPress={handleImagePress}
         activeOpacity={0.9}
+        disabled={isUploading}
       >
         {imageError ? (
           <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }}>
@@ -37,6 +41,14 @@ export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemP
             }}
           />
         )}
+        {/* 上传中状态指示器 */}
+        {file.status === 'uploading' && (
+          <View style={styles.uploadingOverlay}>
+            <ActivityIndicator size="small" color="white" />
+          </View>
+        )}
+        
+        {/* 上传进度条 */}
         {file.status === 'uploading' && file.progress !== undefined && (
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${file.progress}%` }]} />
@@ -52,15 +64,6 @@ export function ImageItem({ file, disabled, onRemove, onImagePress }: ImageItemP
         >
           <MaterialIcons name="close" size={18} color="white" />
         </TouchableOpacity>
-      )}
-      {showShare && (
-        <View style={styles.shareButtonContainer}>
-          <FileDownloader
-            fileUrl={file.uri}
-            fileName={file.name}
-            fileSize={file.size}
-          />
-        </View>
       )}
     </>
   );
@@ -105,14 +108,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statusIndicator: {
+  uploadingOverlay: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
-  },
-  shareButtonContainer: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });

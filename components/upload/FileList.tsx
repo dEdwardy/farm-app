@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
   }
 });
 
-export function FileList({ files, disabled, onFileRemove }: FileListProps) {
+export function FileList({ files, disabled, loading, onFileRemove }: FileListProps) {
   return (
     <View style={styles.container}>
       {/* 仅在非disabled状态下展示文案 */}
@@ -31,6 +31,7 @@ export function FileList({ files, disabled, onFileRemove }: FileListProps) {
             key={file.id} 
             file={file} 
             disabled={disabled}
+            loading={loading}
             onRemove={(removedFile: FileItem) => onFileRemove?.(removedFile, index)}
           />
         ))}

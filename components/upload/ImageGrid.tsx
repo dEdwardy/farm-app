@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
   }
 });
 
-export function ImageGrid({ files, disabled, maxFiles, onAddPress, onFileRemove, onImagePress }: ImageGridProps) {
+export function ImageGrid({ files, disabled, loading, maxFiles, onAddPress, onFileRemove, onImagePress }: ImageGridProps) {
   return (
     <View style={styles.container}>
       <View style={styles.gridContainer}>
@@ -32,6 +32,7 @@ export function ImageGrid({ files, disabled, maxFiles, onAddPress, onFileRemove,
             <ImageItem 
               file={file} 
               disabled={disabled}
+              loading={loading}
               onRemove={(removedFile: FileItem) => onFileRemove?.(removedFile, index)}
               onImagePress={onImagePress}
             />

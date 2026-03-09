@@ -2,7 +2,6 @@ import { commonStyles } from '@/styles/commonStyles';
 import { theme } from '@/styles/theme';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { FileDownloader } from './FileDownloader';
 import { FileItemProps } from './types';
 
 const styles = StyleSheet.create({
@@ -58,9 +57,8 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-export function FileItemComponent({ file, disabled, onRemove }: FileItemProps) {
-  const isUploaded = file.status === 'success' && file.uri.startsWith('http');
-  const showDownload = disabled && isUploaded;
+export function FileItemComponent({ file, disabled, loading, onRemove }: FileItemProps) {
+  const isUploading = file.status === 'uploading';
 
   return (
     <TouchableOpacity 
@@ -79,13 +77,6 @@ export function FileItemComponent({ file, disabled, onRemove }: FileItemProps) {
       </View>
       <View style={styles.statusContainer}>
         {getStatusIcon(file.status)}
-        {showDownload && (
-          <FileDownloader
-            fileUrl={file.uri}
-            fileName={file.name}
-            fileSize={file.size}
-          />
-        )}
         {!disabled && onRemove && (
           <TouchableOpacity 
             onPress={() => onRemove(file)} 

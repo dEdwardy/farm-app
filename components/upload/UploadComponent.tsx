@@ -82,11 +82,13 @@ export function UploadComponent({
   onFileRemove,
   onProgress,
   onSuccess,
-  maxFiles = 5, 
+  onFileStatusChange,
+  maxFiles = Number.MAX_VALUE, 
   maxFileSize = Number.MAX_VALUE,
   autoUpload = true,
   capture = false,
   disabled = false,
+  loading = false,
   uploadType = 'file',
   previewType,
   initialFiles = []
@@ -224,7 +226,8 @@ export function UploadComponent({
     }
 
     setSelectedFiles(combinedFiles);
-    onUploadComplete(combinedFiles);
+    // 传递handleFileStatusChange给父组件，用于更新文件状态
+    onUploadComplete(combinedFiles, handleFileStatusChange);
   };
 
   const removeFile = (file: FileItem, index?: number) => {
@@ -240,6 +243,18 @@ export function UploadComponent({
     }
   };
 
+  // 处理文件状态变更
+  const handleFileStatusChange = (fileId: string, status: FileItem['status'], progress?: number) => {
+    setSelectedFiles(prevFiles => 
+      prevFiles.map(file => 
+        file.id === fileId 
+          ? { ...file, status, progress: progress !== undefined ? progress : file.progress }
+          : file
+      )
+    );
+    onFileStatusChange?.(fileId, status, progress);
+  };
+
   const uploadFiles = async (): Promise<FileItem[]> => {
     if (selectedFiles.length === 0 || uploading) return [];
 
@@ -249,7 +264,8 @@ export function UploadComponent({
       const filesToUpload = selectedFiles.filter(file => file.status === 'ready');
       
       setUploading(false);
-      onUploadComplete(filesToUpload);
+      // 传递handleFileStatusChange给父组件，用于更新文件状态
+      onUploadComplete(filesToUpload, handleFileStatusChange);
       return filesToUpload;
     } catch {
       setUploading(false);
@@ -292,6 +308,7 @@ export function UploadComponent({
             <FileList 
               files={selectedFiles} 
               disabled={disabled}
+              loading={loading || uploading}
               onFileRemove={removeFile}
             />
           )}
@@ -336,6 +353,7 @@ export function UploadComponent({
             <ImageGrid 
               files={selectedFiles}
               disabled={disabled}
+              loading={loading || uploading}
               maxFiles={maxFiles}
               onAddPress={pickImage}
               onFileRemove={removeFile}
