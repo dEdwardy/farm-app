@@ -12,19 +12,19 @@ interface FarmCardProps {
   onPress: (farm: FarmRow) => void;
 }
 
-export const FarmCard: React.FC<FarmCardProps> = React.memo(({ farm, searchQuery, onPress }) => {
-  const handlePress = React.useCallback(() => {
+export const FarmCard: React.FC<FarmCardProps> = ({ farm, searchQuery, onPress }) => {
+  const handlePress = () => {
     onPress(farm);
-  }, [farm, onPress]);
+  };
 
-  const infoItems = React.useMemo(() => [
+  const infoItems = [
     { label: '负责人', value: farm.responsible_person || '-' },
     { label: '电话', value: formatPhone(farm.contact_phone) },
     { label: '池塘口数', value: farm.pond_count ? `${farm.pond_count}口` : '-' },
     { label: '水面面积', value: farm.water_area_acre ? `${farm.water_area_acre}亩` : '-' },
     { label: '主养品种', value: farm.main_species || '-' },
     { label: '养殖模式', value: farm.farm_mode || '-' },
-  ], [farm, formatPhone]);
+  ];
 
   return (
     <TouchableOpacity
@@ -88,6 +88,4 @@ export const FarmCard: React.FC<FarmCardProps> = React.memo(({ farm, searchQuery
       </View>
     </TouchableOpacity>
   );
-});
-
-FarmCard.displayName = 'FarmCard';
+};
