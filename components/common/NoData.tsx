@@ -11,7 +11,7 @@ interface NoDataProps {
 }
 
 export const NoData: React.FC<NoDataProps> = ({
-  icon = 'folder-open',
+  icon = 'inbox',
   text = '暂无数据',
   style,
 }) => {
@@ -25,14 +25,14 @@ export const NoData: React.FC<NoDataProps> = ({
           alignItems: 'center',
           backgroundColor: theme.colors.background,
           borderRadius: theme.borderRadius.md,
-          padding: theme.spacing.lg,
+          padding: theme.spacing.md,
         },
         style,
       ]}
     >
       <MaterialIcons
         name={icon}
-        size={48}
+        size={32}
         color={theme.colors.text.secondary}
         style={{ marginBottom: theme.spacing.sm }}
       />

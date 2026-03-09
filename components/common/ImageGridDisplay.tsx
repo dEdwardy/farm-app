@@ -37,7 +37,7 @@ export function ImageGridDisplay({ images, onImagePress }: ImageGridDisplayProps
     },
     emptyContainer: {
       width: '100%',
-      height: 160,
+      height: 120,
       borderRadius: theme.borderRadius.md,
       backgroundColor: '#f5f5f5',
       justifyContent: 'center',
