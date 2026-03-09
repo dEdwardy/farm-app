@@ -20,24 +20,24 @@ export interface FormFile {
 export interface FarmBaseInfo {
   id?: string;
   farm_name: string;
-  address: string;
+  address?: string;
   longitude_latitude?: string;
-  responsible_person: string;
-  contact_phone: string;
-  farm_mode: string;
+  responsible_person?: string;
+  contact_phone?: string;
+  farm_mode?: string;
 }
 
 // 养殖情况信息
 export interface FarmBreedingInfo {
-  pond_count: string;
-  water_area_acre: string;
-  farm_area_acre: string;
-  other_water_area_sqm: string;
-  other_farm_area_acre: string;
-  avg_water_depth: string;
-  main_species: string;
-  farm_mode: string;
-  operation_status: string;
+  pond_count?: string;
+  water_area_acre?: string;
+  farm_area_acre?: string;
+  other_water_area_sqm?: string;
+  other_farm_area_acre?: string;
+  avg_water_depth?: string;
+  main_species?: string;
+  farm_mode?: string;
+  operation_status?: string;
   output?: string;
   output_value?: string;
   total_investment?: string;
@@ -45,11 +45,11 @@ export interface FarmBreedingInfo {
 
 // 尾水处理信息
 export interface FarmTreatmentInfo {
-  has_treatment_facility: boolean;
-  treatment_method: string;
-  treatment_facility_area: string;
-  treated_discharge_volume: string;
-  final_destination: string;
+  has_treatment_facility?: boolean;
+  treatment_method?: string;
+  treatment_facility_area?: string;
+  treated_discharge_volume?: string;
+  final_destination?: string;
 }
 
 // 完整养殖场数据
