@@ -3,6 +3,7 @@ import { dataService } from '@/services/dataService';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ImageGridDisplay, ImagePreview, NoData } from '@/components/common';
 import { FileDownloader } from '@/components/upload/FileDownloader';
+import { formatDisplayValue, formatValueWithUnit } from '@/utils/format';
 import { toast } from '@/utils/toast';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -36,6 +37,8 @@ const mapImageData = (
     return { url: item.url, name: item.name, size: item.size || 0 };
   });
 };
+
+
 
 // 将表单数据转换为提交格式
 const mapFormData = (farmData: FarmRow): FarmFormData => {
@@ -165,19 +168,19 @@ export default function DetailScreen() {
           <Text style={styles.farmName}>{formData.farm_name}</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>详细地址</Text>
-            <Text style={styles.infoValue}>{formData.address}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.address)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>经纬度</Text>
-            <Text style={styles.infoValue}>{formData.longitude_latitude}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.longitude_latitude)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>负责人</Text>
-            <Text style={styles.infoValue}>{formData.responsible_person}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.responsible_person)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>联系电话</Text>
-            <Text style={styles.infoValue}>{formData.contact_phone}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.contact_phone)}</Text>
           </View>
         </View>
 
@@ -186,51 +189,51 @@ export default function DetailScreen() {
           <Text style={styles.sectionTitle}>养殖信息</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>池塘口数</Text>
-            <Text style={styles.infoValue}>{formData.pond_count}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.pond_count)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>养殖水面面积</Text>
-            <Text style={styles.infoValue}>{formData.water_area_acre} 亩</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.water_area_acre, '亩')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>养殖占地面积</Text>
-            <Text style={styles.infoValue}>{formData.farm_area_acre} 亩</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.farm_area_acre, '亩')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>其他养殖水面面积</Text>
-            <Text style={styles.infoValue}>{formData.other_water_area_sqm} 平方米</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.other_water_area_sqm, '平方米')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>其他养殖占地面积</Text>
-            <Text style={styles.infoValue}>{formData.other_farm_area_acre} 亩</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.other_farm_area_acre, '亩')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>平均水深</Text>
-            <Text style={styles.infoValue}>{formData.avg_water_depth} 米</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.avg_water_depth, '米')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>主养品种</Text>
-            <Text style={styles.infoValue}>{formData.main_species}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.main_species)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>养殖模式</Text>
-            <Text style={styles.infoValue}>{formData.farm_mode}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.farm_mode)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>生产运行情况</Text>
-            <Text style={styles.infoValue}>{formData.operation_status}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.operation_status)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>总产量</Text>
-            <Text style={styles.infoValue}>{formData.output} 吨</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.output, '吨')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>年总产值</Text>
-            <Text style={styles.infoValue}>{formData.output_value} 万元</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.output_value, '万元')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>年总投入</Text>
-            <Text style={styles.infoValue}>{formData.total_investment} 万元</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.total_investment, '万元')}</Text>
           </View>
           <View style={styles.infoRowHorizontal}>
             <Text style={styles.infoLabelHorizontal}>养殖情况图片</Text>
@@ -250,19 +253,19 @@ export default function DetailScreen() {
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>尾水处理方式</Text>
-            <Text style={styles.infoValue}>{formData.treatment_method}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.treatment_method)}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>尾水处理设施面积</Text>
-            <Text style={styles.infoValue}>{formData.treatment_facility_area} 亩</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.treatment_facility_area, '亩')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>已完成尾水治理排放量</Text>
-            <Text style={styles.infoValue}>{formData.treated_discharge_volume} 吨</Text>
+            <Text style={styles.infoValue}>{formatValueWithUnit(formData.treated_discharge_volume, '吨')}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>养殖尾水最终去向</Text>
-            <Text style={styles.infoValue}>{formData.final_destination}</Text>
+            <Text style={styles.infoValue}>{formatDisplayValue(formData.final_destination)}</Text>
           </View>
           <View style={styles.infoRowHorizontal}>
             <Text style={styles.infoLabelHorizontal}>尾水处理图片</Text>
