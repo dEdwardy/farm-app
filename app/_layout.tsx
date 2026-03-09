@@ -12,6 +12,7 @@ import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
 import ToastManager from 'toastify-react-native';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { ErrorBoundary } from '../components/common';
 import { PermissionRequestModal } from '../components/PermissionRequestModal';
 
 interface RouteState {
@@ -216,10 +217,11 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <View style={{ flex: 1 }}>
-        <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack initialRouteName="splash">
+    <ErrorBoundary>
+      <ThemeProvider>
+        <View style={{ flex: 1 }}>
+          <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack initialRouteName="splash">
             <Stack.Screen 
               name="splash" 
               options={{ 
@@ -303,5 +305,6 @@ export default function RootLayout() {
         />
       </View>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }

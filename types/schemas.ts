@@ -153,7 +153,7 @@ export const farmFormSchema = z.object({
   avg_water_depth: z.union([z.string(), z.undefined()]),
   main_species: z.string().optional(),
   farm_mode: z.string().optional(),
-  operation_status: z.string().optional(),
+  operation_status: z.union([z.string(), z.null(), z.undefined()]),
   output: z.union([z.string(), z.undefined()]),
   output_value: z.union([z.string(), z.undefined()]),
   total_investment: z.union([z.string(), z.undefined()]),
@@ -164,10 +164,10 @@ export const farmFormSchema = z.object({
   })).optional(),
   // 尾水处理
   has_treatment_facility: z.boolean().optional(),
-  treatment_method: z.string().optional(),
+  treatment_method: z.union([z.string(), z.null(), z.undefined()]),
   treatment_facility_area: z.union([z.string(), z.undefined()]),
   treated_discharge_volume: z.union([z.string(), z.undefined()]),
-  final_destination: z.string().optional(),
+  final_destination: z.union([z.string(), z.null(), z.undefined()]),
   tail_water_images: z.array(z.object({
     url: z.string(),
     name: z.string(),

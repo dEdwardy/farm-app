@@ -41,7 +41,10 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.edw4rd.farmapp",
-      "versionCode": 1
+      "versionCode": 1,
+      "networkSecurityConfig": {
+        "cleartextTrafficPermitted": true
+      }
     },
     "web": {
       "output": "static",
@@ -78,7 +81,8 @@
           "photosPermission": "允许访问相册以上传养殖场照片",
           "cameraPermission": "允许使用相机拍摄养殖场照片"
         }
-      ]
+      ],
+      "react-native-compressor"
     ],
     "experiments": {
       "typedRoutes": true,

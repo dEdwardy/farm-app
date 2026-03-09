@@ -351,6 +351,23 @@ export const createFormStyles = (theme: Theme) => StyleSheet.create({
     marginBottom: 12,
     color: theme.colors.text.primary,
   },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    fontWeight: '500',
+  },
 });
 
 // 导出默认样式（使用当前主题）
